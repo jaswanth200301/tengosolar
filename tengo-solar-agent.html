@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tengo Solar — Agent App</title>
+    <meta name="theme-color" content="#f97316">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Tengo Agent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest-agent.json">
+    <script src="https://unpkg.com/@daily-co/daily-js" defer></script>
+    <style>
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        :root {
+            --orange:#f97316; --orange-d:#ea580c; --green:#22c55e;
+            --red:#ef4444; --blue:#60a5fa; --bg:#030712;
+            --surface:#111827; --surface2:#1f2937;
+            --border:rgba(255,255,255,0.08); --text:#f9fafb; --muted:#9ca3af;
+        }
+        html, body { height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; overflow-x:hidden; }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            position:fixed; top:0; left:0; right:0; z-index:100;
+            background:rgba(3,7,18,0.95); backdrop-filter:blur(12px);
+            border-bottom:1px solid var(--border);
+            padding:0.75rem 1.25rem;
+            display:flex; align-items:center; justify-content:space-between; gap:1rem;
+        }
+        .topbar-brand { display:flex; align-items:center; gap:0.6rem; }
+        .topbar-brand .logo { font-size:1.25rem; }
+        .topbar-brand h1 { font-size:0.95rem; font-weight:700; color:var(--orange); }
+        .topbar-brand p  { font-size:0.7rem; color:var(--muted); }
+
+        .status-toggle {
+            display:flex; align-items:center; gap:0.5rem;
+            background:var(--surface2); border:1px solid var(--border);
+            border-radius:999px; padding:0.3rem 0.75rem; cursor:pointer;
+            font-size:0.82rem; font-weight:600; transition:all 0.2s;
+        }
+        .status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .status-dot.available { background:var(--green); animation:pulse-g 2s infinite; }
+        .status-dot.busy      { background:#fbbf24; }
+        .status-dot.offline   { background:#6b7280; }
+        @keyframes pulse-g { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* ── MAIN ── */
+        main { padding-top:4.5rem; padding-bottom:5rem; min-height:100vh; }
+        .page-section { padding:1.25rem; }
+
+        /* ── INCOMING CALL MODAL ── */
+        .call-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,0.85);
+            z-index:500; display:flex; align-items:center; justify-content:center;
+            padding:1.5rem; opacity:0; pointer-events:none; transition:opacity 0.25s;
+        }
+        .call-overlay.active { opacity:1; pointer-events:all; }
+        .call-card {
+            background:var(--surface); border:1px solid rgba(249,115,22,0.4);
+            border-radius:1.5rem; padding:2rem; width:100%; max-width:340px;
+            text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.8);
+            animation:ring-pulse 0.6s ease infinite alternate;
+        }
+        @keyframes ring-pulse { from{box-shadow:0 0 0 0 rgba(249,115,22,0.4)} to{box-shadow:0 0 0 16px rgba(249,115,22,0)} }
+        .caller-avatar {
+            width:80px; height:80px; border-radius:50%; margin:0 auto 1rem;
+            background:linear-gradient(135deg,var(--orange),var(--orange-d));
+            display:flex; align-items:center; justify-content:center; font-size:2rem;
+        }
+        .caller-name { font-size:1.4rem; font-weight:800; margin-bottom:0.25rem; }
+        .caller-meta { color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; }
+        .caller-badge {
+            display:inline-block; background:rgba(249,115,22,0.15);
+            border:1px solid rgba(249,115,22,0.3); color:#fed7aa;
+            border-radius:999px; font-size:0.72rem; padding:0.2rem 0.7rem; margin-bottom:1.5rem;
+        }
+        .call-actions { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem; }
+        .btn-answer  { background:var(--green); border:none; border-radius:999px; padding:1rem; color:#fff; font-size:1.5rem; cursor:pointer; transition:opacity 0.2s; }
+        .btn-decline { background:var(--red);   border:none; border-radius:999px; padding:1rem; color:#fff; font-size:1.5rem; cursor:pointer; transition:opacity 0.2s; }
+        .btn-answer:hover,.btn-decline:hover { opacity:0.85; }
+
+        /* ── ACTIVE CALL ── */
+        .active-call-bar {
+            background:linear-gradient(135deg,#14532d,#166534);
+            border:1px solid rgba(34,197,94,0.3); border-radius:0.75rem;
+            padding:1rem 1.25rem; display:flex; align-items:center; gap:1rem;
+            margin-bottom:1.25rem; display:none;
+        }
+        .active-call-bar.show { display:flex; }
+        .call-timer-lg { font-size:1.5rem; font-weight:800; font-family:monospace; color:var(--green); margin-left:auto; }
+        .call-controls { display:flex; gap:0.6rem; }
+        .call-ctrl-btn { width:40px; height:40px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1rem; transition:all 0.2s; }
+        .call-ctrl-btn.mute   { background:rgba(255,255,255,0.1); color:#fff; }
+        .call-ctrl-btn.mute.on{ background:rgba(239,68,68,0.3); color:#f87171; }
+        .call-ctrl-btn.end    { background:var(--red); color:#fff; }
+
+        /* ── CARDS ── */
+        .card { background:var(--surface); border:1px solid var(--border); border-radius:0.85rem; padding:1.1rem; margin-bottom:1rem; }
+        .card h3 { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:0.85rem; }
+        .section-title { font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:1rem; }
+
+        /* ── INCOMING CALLS QUEUE ── */
+        .queue-item {
+            background:var(--surface2); border:1px solid var(--border); border-radius:0.6rem;
+            padding:0.85rem 1rem; display:flex; align-items:center; gap:0.75rem;
+            margin-bottom:0.6rem; transition:border-color 0.2s;
+        }
+        .queue-item:hover { border-color:rgba(249,115,22,0.35); }
+        .q-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--orange-d)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+        .q-info h4 { font-size:0.88rem; font-weight:600; }
+        .q-info p  { font-size:0.75rem; color:var(--muted); }
+        .q-actions { margin-left:auto; display:flex; gap:0.4rem; }
+        .btn-sm { border:none; border-radius:0.4rem; padding:0.35rem 0.75rem; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-sm.join { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+        .btn-sm.join:hover { background:rgba(34,197,94,0.3); }
+        .btn-sm.dismiss { background:rgba(255,255,255,0.05); color:var(--muted); border:1px solid var(--border); }
+
+        /* ── STATS ROW ── */
+        .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.25rem; }
+        .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:0.75rem; padding:0.85rem; text-align:center; }
+        .stat-box .val { font-size:1.75rem; font-weight:800; }
+        .stat-box .lbl { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:0.2rem; }
+
+        /* ── CALL LOG ── */
+        .log-item { display:flex; align-items:flex-start; gap:0.75rem; padding:0.7rem 0; border-bottom:1px solid var(--border); }
+        .log-item:last-child { border-bottom:none; }
+        .log-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+        .log-icon.incoming { background:rgba(34,197,94,0.15); }
+        .log-icon.missed   { background:rgba(239,68,68,0.15); }
+        .log-meta h5 { font-size:0.85rem; font-weight:600; }
+        .log-meta p  { font-size:0.75rem; color:var(--muted); }
+        .log-time { margin-left:auto; font-size:0.7rem; color:var(--muted); white-space:nowrap; }
+
+        /* ── SETTINGS ── */
+        .setting-row { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 0; border-bottom:1px solid var(--border); }
+        .setting-row:last-child { border-bottom:none; }
+        .setting-row label { font-size:0.88rem; }
+        .setting-row p { font-size:0.75rem; color:var(--muted); margin-top:0.15rem; }
+        input[type="text"].setting-input {
+            background:var(--surface2); border:1px solid var(--border); border-radius:0.4rem;
+            padding:0.45rem 0.7rem; color:var(--text); font-size:0.82rem; outline:none; width:180px;
+        }
+        input[type="text"].setting-input:focus { border-color:var(--orange); }
+
+        /* ── TOGGLE SWITCH ── */
+        .toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+        .toggle input { opacity:0; width:0; height:0; }
+        .toggle-slider { position:absolute; inset:0; background:#374151; border-radius:999px; cursor:pointer; transition:0.25s; }
+        .toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.25s; }
+        .toggle input:checked + .toggle-slider { background:var(--orange); }
+        .toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
+
+        /* ── BOTTOM NAV ── */
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0;
+            background:rgba(3,7,18,0.97); backdrop-filter:blur(12px);
+            border-top:1px solid var(--border);
+            display:grid; grid-template-columns:repeat(4,1fr);
+            padding:0.5rem 0; z-index:100;
+        }
+        .nav-btn { display:flex; flex-direction:column; align-items:center; gap:0.2rem; padding:0.4rem; cursor:pointer; border:none; background:none; color:var(--muted); font-size:0.65rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; transition:color 0.2s; }
+        .nav-btn .icon { font-size:1.3rem; }
+        .nav-btn.active { color:var(--orange); }
+
+        /* ── DAILY CALL FRAME ── */
+        #agent-call-frame { width:100%; height:0; overflow:hidden; border-radius:0.75rem; margin-bottom:1rem; }
+        #agent-call-frame.active { height:auto; min-height:120px; }
+
+        /* ── NOTIFICATION BADGE ── */
+        .badge { background:var(--red); color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.6rem; font-weight:700; display:none; align-items:center; justify-content:center; position:absolute; top:-4px; right:-4px; }
+        .badge.show { display:flex; }
+        .nav-btn { position:relative; }
+
+        /* ── EMPTY STATE ── */
+        .empty-state { text-align:center; padding:2.5rem 1rem; color:var(--muted); }
+        .empty-state .icon { font-size:2.5rem; margin-bottom:0.75rem; }
+        .empty-state p { font-size:0.85rem; }
+
+        /* ── TOAST ── */
+        #agent-toast { position:fixed; bottom:5rem; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border); border-radius:0.6rem; padding:0.6rem 1.25rem; font-size:0.85rem; z-index:600; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; }
+        #agent-toast.show { opacity:1; }
+
+        .btn-primary { background:linear-gradient(135deg,var(--orange),var(--orange-d)); border:none; border-radius:0.6rem; padding:0.75rem 1.5rem; color:#fff; font-size:0.9rem; font-weight:700; cursor:pointer; width:100%; margin-top:0.75rem; }
+        .btn-secondary { background:var(--surface2); border:1px solid var(--border); border-radius:0.6rem; padding:0.65rem 1.25rem; color:var(--text); font-size:0.85rem; cursor:pointer; width:100%; margin-top:0.5rem; }
+    </style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <span class="logo">☀️</span>
+        <div>
+            <h1>Tengo Agent</h1>
+            <p id="topbar-sub">Loading…</p>
+        </div>
+    </div>
+    <div class="status-toggle" id="status-toggle" onclick="cycleStatus()">
+        <span class="status-dot available" id="status-dot"></span>
+        <span id="status-text">Available</span>
+    </div>
+</div>
+
+<!-- ── INCOMING CALL OVERLAY ── -->
+<div class="call-overlay" id="call-overlay">
+    <div class="call-card">
+        <div class="caller-avatar" id="caller-avatar">👤</div>
+        <div class="caller-name" id="caller-name">Incoming Call</div>
+        <div class="caller-meta" id="caller-meta">Website visitor</div>
+        <div class="caller-badge" id="caller-badge">☀️ Solar Enquiry</div>
+        <div class="call-actions">
+            <button class="btn-answer" onclick="answerCall()" title="Answer">📞</button>
+            <button class="btn-decline" onclick="declineCall()" title="Decline">📵</button>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin-top:1rem;">Web call via Daily.co — free</p>
+    </div>
+</div>
+
+<main>
+    <!-- ── HOME TAB ── -->
+    <div id="tab-home" class="page-section">
+        <!-- Active call bar -->
+        <div class="active-call-bar" id="active-call-bar">
+            <div>
+                <div style="font-size:0.88rem;font-weight:700;">🔴 Active Call</div>
+                <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);" id="active-caller-name">—</div>
+            </div>
+            <div id="agent-call-frame"></div>
+            <div class="call-timer-lg" id="agent-timer">0:00</div>
+            <div class="call-controls">
+                <button class="call-ctrl-btn mute" id="agent-mute-btn" onclick="agentToggleMute()" title="Mute">🎙️</button>
+                <button class="call-ctrl-btn end" onclick="agentEndCall()" title="End">📵</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box"><div class="val" id="stat-today" style="color:var(--orange);">0</div><div class="lbl">Calls Today</div></div>
+            <div class="stat-box"><div class="val" id="stat-week"  style="color:var(--blue);">0</div><div class="lbl">This Week</div></div>
+            <div class="stat-box"><div class="val" id="stat-mins"  style="color:var(--green);">0</div><div class="lbl">Minutes</div></div>
+        </div>
+
+        <!-- Waiting rooms -->
+        <div class="section-title">📞 Waiting Calls <span id="queue-count" style="font-size:0.75rem;color:var(--muted);"></span></div>
+        <div id="queue-list">
+            <div class="empty-state">
+                <div class="icon">☕</div>
+                <p>No active calls right now.<br>Calls from the website appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── LOG TAB ── -->
+    <div id="tab-log" class="page-section" style="display:none;">
+        <div class="section-title">📋 Call History</div>
+        <div class="card">
+            <div id="call-log-list">
+                <div class="empty-state"><div class="icon">📭</div><p>No calls logged yet.</p></div>
+            </div>
+        </div>
+        <button class="btn-secondary" onclick="clearLog()" style="margin-top:0.5rem;width:100%;font-size:0.8rem;color:var(--muted);">Clear history</button>
+    </div>
+
+    <!-- ── SETTINGS TAB ── -->
+    <div id="tab-settings" class="page-section" style="display:none;">
+        <div class="section-title">⚙️ Settings</div>
+        <div class="card">
+            <h3>Daily.co Configuration</h3>
+            <div class="setting-row">
+                <div>
+                    <label>Domain</label>
+                    <p>Your Daily.co subdomain</p>
+                </div>
+                <input type="text" class="setting-input" id="cfg-domain" placeholder="tengosolar">
+            </div>
+            <div class="setting-row">
+                <div>
+                    <label>API Key</label>
+                    <p>From Daily.co dashboard</p>
+                </div>
+                <input type="text" class="setting-input" id="cfg-apikey" placeholder="d_xxxxxx" type="password">
+            </div>
+            <div class="setting-row">
+                <div>
+                    <label>Agent Name</label>
+                    <p>Shown to callers</p>
+                </div>
+                <input type="text" class="setting-input" id="cfg-agentname" placeholder="Solar Advisor">
+            </div>
+            <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div class="card">
+            <h3>Notifications</h3>
+            <div class="setting-row">
+                <div>
+                    <label>Browser notifications</label>
+                    <p>Alert when a call comes in</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-toggle" onchange="toggleNotifications(this)"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <label>Sound alerts</label>
+                    <p>Ring on incoming call</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="sound-toggle" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <label>Poll interval</label>
+                    <p>How often to check for calls</p>
+                </div>
+                <select id="poll-interval" style="background:var(--surface2);border:1px solid var(--border);border-radius:0.4rem;padding:0.4rem 0.6rem;color:var(--text);font-size:0.82rem;">
+                    <option value="5000">5 seconds</option>
+                    <option value="10000" selected>10 seconds</option>
+                    <option value="30000">30 seconds</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>About</h3>
+            <div class="setting-row"><label>App version</label><span style="color:var(--muted);font-size:0.82rem;">1.0.0</span></div>
+            <div class="setting-row"><label>Call technology</label><span style="color:var(--muted);font-size:0.82rem;">Daily.co WebRTC</span></div>
+            <div class="setting-row"><label>Cost per call</label><span style="color:var(--green);font-size:0.82rem;font-weight:700;">Free</span></div>
+        </div>
+    </div>
+</main>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('home', this)" id="nav-home">
+        <span class="icon">🏠</span>Home
+        <span class="badge show" id="queue-badge">0</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('log', this)" id="nav-log">
+        <span class="icon">📋</span>Log
+    </button>
+    <button class="nav-btn" onclick="switchTab('settings', this)" id="nav-settings">
+        <span class="icon">⚙️</span>Settings
+    </button>
+    <button class="nav-btn" onclick="openWebsite()" id="nav-site">
+        <span class="icon">🌐</span>Website
+    </button>
+</nav>
+
+<div id="agent-toast"></div>
+
+<script>
+// ── CONFIG (loaded from localStorage) ──────────────────────────────
+let cfg = JSON.parse(localStorage.getItem('tengo_agent_cfg') || '{}');
+let agentStatus = localStorage.getItem('tengo_agent_status') || 'available';
+const STATUSES  = ['available','busy','offline'];
+const STATUS_LABELS = { available:'Available', busy:'Busy', offline:'Offline' };
+const STATUS_COLORS = { available:'available', busy:'busy', offline:'offline' };
+
+// ── CALL STATE ──────────────────────────────────────────────────────
+let activeCall = { frame:null, room:null, startTime:null, timerInterval:null, muted:false, callerName:'' };
+let callLog    = JSON.parse(localStorage.getItem('tengo_call_log') || '[]');
+let pendingRooms = []; // rooms waiting to be answered
+let pollTimer  = null;
+let ringAudio  = null;
+
+// ── INIT ────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+    loadSettings();
+    renderStatus();
+    renderCallLog();
+    startPolling();
+    updateTopbarSub();
+    renderStats();
+    document.getElementById('queue-badge').textContent = '0';
+    document.getElementById('queue-badge').classList.remove('show');
+});
+
+function loadSettings() {
+    cfg = JSON.parse(localStorage.getItem('tengo_agent_cfg') || '{}');
+    document.getElementById('cfg-domain').value    = cfg.domain    || '';
+    document.getElementById('cfg-apikey').value    = cfg.apiKey    || '';
+    document.getElementById('cfg-agentname').value = cfg.agentName || 'Solar Advisor';
+}
+
+function saveSettings() {
+    cfg = {
+        domain:    document.getElementById('cfg-domain').value.trim(),
+        apiKey:    document.getElementById('cfg-apikey').value.trim(),
+        agentName: document.getElementById('cfg-agentname').value.trim() || 'Solar Advisor',
+    };
+    localStorage.setItem('tengo_agent_cfg', JSON.stringify(cfg));
+    toast('✅ Settings saved');
+    startPolling();
+}
+
+function updateTopbarSub() {
+    document.getElementById('topbar-sub').textContent =
+        cfg.domain ? `${cfg.domain}.daily.co` : 'Configure Daily.co in settings';
+}
+
+// ── STATUS ──────────────────────────────────────────────────────────
+function renderStatus() {
+    document.getElementById('status-dot').className = `status-dot ${agentStatus}`;
+    document.getElementById('status-text').textContent = STATUS_LABELS[agentStatus];
+}
+
+function cycleStatus() {
+    const idx = STATUSES.indexOf(agentStatus);
+    agentStatus = STATUSES[(idx + 1) % STATUSES.length];
+    localStorage.setItem('tengo_agent_status', agentStatus);
+    renderStatus();
+    toast(`Status: ${STATUS_LABELS[agentStatus]}`);
+}
+
+// ── POLLING — check Daily.co for active rooms ────────────────────────
+function startPolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    if (!cfg.domain || !cfg.apiKey) return;
+    const interval = parseInt(document.getElementById('poll-interval')?.value || '10000');
+    pollTimer = setInterval(pollRooms, interval);
+    pollRooms(); // immediate first check
+}
+
+async function pollRooms() {
+    if (agentStatus === 'offline' || !cfg.apiKey) return;
+    try {
+        const res = await fetch('https://api.daily.co/v1/rooms', {
+            headers: { 'Authorization': `Bearer ${cfg.apiKey}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const tengoRooms = (data.data || []).filter(r =>
+            r.name.startsWith('tengo-') &&
+            r.config?.exp > Math.floor(Date.now()/1000)
+        );
+
+        // Find rooms we haven't seen yet
+        const known = new Set(pendingRooms.map(r => r.name));
+        const newRooms = tengoRooms.filter(r => !known.has(r.name));
+
+        if (newRooms.length > 0 && !activeCall.frame) {
+            newRooms.forEach(r => {
+                if (!pendingRooms.find(p => p.name === r.name)) {
+                    pendingRooms.push({ name:r.name, url:r.url, arrivedAt:Date.now() });
+                }
+            });
+            renderQueue();
+            if (agentStatus === 'available') showIncomingCall(pendingRooms[0]);
+        }
+
+        // Remove expired rooms
+        pendingRooms = pendingRooms.filter(r => tengoRooms.find(tr => tr.name === r.name));
+        renderQueue();
+    } catch(e) {
+        // Silently fail — no internet or API issue
+    }
+}
+
+function renderQueue() {
+    const list  = document.getElementById('queue-list');
+    const badge = document.getElementById('queue-badge');
+    const count = document.getElementById('queue-count');
+    const n     = pendingRooms.length;
+
+    badge.textContent = n;
+    badge.className   = n > 0 ? 'badge show' : 'badge';
+    count.textContent = n > 0 ? `(${n})` : '';
+
+    if (!n) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">☕</div><p>No active calls right now.<br>Calls from the website appear here.</p></div>`;
+        return;
+    }
+    list.innerHTML = pendingRooms.map(r => {
+        const mins = Math.floor((Date.now()-r.arrivedAt)/60000);
+        const when = mins < 1 ? 'Just now' : `${mins}m ago`;
+        return `<div class="queue-item">
+            <div class="q-avatar">👤</div>
+            <div class="q-info">
+                <h4>${r.callerName || 'Website Visitor'}</h4>
+                <p>☀️ Solar enquiry · ${when}</p>
+            </div>
+            <div class="q-actions">
+                <button class="btn-sm join" onclick="joinRoom('${r.name}','${r.url}','${r.callerName||'Website Visitor'}')">Answer</button>
+                <button class="btn-sm dismiss" onclick="dismissRoom('${r.name}')">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── INCOMING CALL NOTIFICATION ───────────────────────────────────────
+function showIncomingCall(room) {
+    document.getElementById('caller-name').textContent = room.callerName || 'Website Visitor';
+    document.getElementById('caller-meta').textContent = `Room: ${room.name}`;
+    document.getElementById('call-overlay').classList.add('active');
+    playRing();
+    // Browser notification
+    if (Notification.permission === 'granted') {
+        new Notification('☀️ Incoming Solar Call', {
+            body: `${room.callerName || 'A website visitor'} wants to talk solar`,
+            icon: '/icon-192.png',
+            tag:  'incoming-call',
+            requireInteraction: true
+        });
+    }
+    // Store current pending room for answer/decline
+    window._pendingCallRoom = room;
+}
+
+function answerCall() {
+    document.getElementById('call-overlay').classList.remove('active');
+    stopRing();
+    if (window._pendingCallRoom) {
+        joinRoom(window._pendingCallRoom.name, window._pendingCallRoom.url, window._pendingCallRoom.callerName || 'Website Visitor');
+    }
+}
+
+function declineCall() {
+    document.getElementById('call-overlay').classList.remove('active');
+    stopRing();
+    if (window._pendingCallRoom) {
+        logCall(window._pendingCallRoom.callerName || 'Website Visitor', 0, 'missed');
+        dismissRoom(window._pendingCallRoom.name);
+        window._pendingCallRoom = null;
+    }
+    toast('📵 Call declined');
+}
+
+// ── JOIN A DAILY.CO ROOM ─────────────────────────────────────────────
+async function joinRoom(name, url, callerName) {
+    if (agentStatus === 'offline') { toast('⚠️ Set status to Available first'); return; }
+    dismissRoom(name);
+
+    activeCall.callerName = callerName;
+    agentStatus = 'busy';
+    renderStatus();
+
+    document.getElementById('active-caller-name').textContent = callerName;
+    document.getElementById('active-call-bar').classList.add('show');
+    activeCall.startTime = Date.now();
+    activeCall.room = name;
+
+    // Start timer
+    activeCall.timerInterval = setInterval(() => {
+        const e = Math.floor((Date.now()-activeCall.startTime)/1000);
+        document.getElementById('agent-timer').textContent = `${Math.floor(e/60)}:${(e%60).toString().padStart(2,'0')}`;
+    }, 1000);
+
+    if (typeof DailyIframe !== 'undefined') {
+        const container = document.getElementById('agent-call-frame');
+        container.classList.add('active');
+
+        activeCall.frame = DailyIframe.createFrame(container, {
+            iframeStyle:{ width:'100%', height:'140px', border:'none', borderRadius:'0.5rem' },
+            showLeaveButton: false, showFullscreenButton: false,
+        });
+
+        activeCall.frame
+            .on('joined-meeting', () => toast('✅ Connected'))
+            .on('left-meeting',   () => finaliseCall())
+            .on('error',          (e) => { toast('⚠️ '+e.errorMsg); finaliseCall(); });
+
+        await activeCall.frame.join({
+            url, userName: cfg.agentName || 'Solar Advisor',
+            startVideoOff:true, startAudioOff:false
+        });
+    } else {
+        // Fallback — open in new tab
+        window.open(url, '_blank');
+        toast('📞 Opening call in new tab');
+    }
+}
+
+function agentToggleMute() {
+    activeCall.muted = !activeCall.muted;
+    if (activeCall.frame) activeCall.frame.setLocalAudio(!activeCall.muted);
+    const btn = document.getElementById('agent-mute-btn');
+    btn.classList.toggle('on', activeCall.muted);
+    btn.textContent = activeCall.muted ? '🔇' : '🎙️';
+}
+
+function agentEndCall() {
+    if (activeCall.frame) {
+        activeCall.frame.leave().then(() => finaliseCall());
+    } else {
+        finaliseCall();
+    }
+}
+
+function finaliseCall() {
+    clearInterval(activeCall.timerInterval);
+    const duration = activeCall.startTime
+        ? Math.floor((Date.now()-activeCall.startTime)/1000) : 0;
+    document.getElementById('active-call-bar').classList.remove('show');
+    document.getElementById('agent-call-frame').classList.remove('active');
+    document.getElementById('agent-timer').textContent = '0:00';
+    if (activeCall.frame) { activeCall.frame.destroy(); activeCall.frame = null; }
+    agentStatus = 'available'; renderStatus();
+    logCall(activeCall.callerName, duration, 'completed');
+    const m=Math.floor(duration/60), s=duration%60;
+    toast(`✅ Call ended — ${m}m ${s}s`);
+    activeCall = { frame:null, room:null, startTime:null, timerInterval:null, muted:false, callerName:'' };
+    renderStats();
+}
+
+function dismissRoom(name) {
+    pendingRooms = pendingRooms.filter(r => r.name !== name);
+    renderQueue();
+}
+
+// ── CALL LOG ─────────────────────────────────────────────────────────
+function logCall(name, duration, status) {
+    callLog.unshift({ name, duration, status, ts: new Date().toISOString() });
+    callLog = callLog.slice(0, 200);
+    localStorage.setItem('tengo_call_log', JSON.stringify(callLog));
+    renderCallLog();
+    renderStats();
+}
+
+function renderCallLog() {
+    const el = document.getElementById('call-log-list');
+    if (!callLog.length) {
+        el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No calls logged yet.</p></div>';
+        return;
+    }
+    el.innerHTML = callLog.slice(0,50).map(c => {
+        const d = new Date(c.ts);
+        const when = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        const dur = c.duration ? `${Math.floor(c.duration/60)}m ${c.duration%60}s` : '—';
+        return `<div class="log-item">
+            <div class="log-icon ${c.status==='missed'?'missed':'incoming'}">${c.status==='missed'?'↘️':'📞'}</div>
+            <div class="log-meta">
+                <h5>${c.name}</h5>
+                <p>${c.status==='missed'?'Missed':dur} · Web call</p>
+            </div>
+            <div class="log-time">${when}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderStats() {
+    const today = new Date().toDateString();
+    const weekAgo = Date.now() - 7*24*3600*1000;
+    const todayCalls = callLog.filter(c => new Date(c.ts).toDateString()===today && c.status!=='missed').length;
+    const weekCalls  = callLog.filter(c => new Date(c.ts)>weekAgo && c.status!=='missed').length;
+    const totalMins  = Math.round(callLog.reduce((s,c)=>s+(c.duration||0),0)/60);
+    document.getElementById('stat-today').textContent = todayCalls;
+    document.getElementById('stat-week').textContent  = weekCalls;
+    document.getElementById('stat-mins').textContent  = totalMins;
+}
+
+function clearLog() {
+    if (!confirm('Clear all call history?')) return;
+    callLog = []; localStorage.removeItem('tengo_call_log');
+    renderCallLog(); renderStats(); toast('🗑️ Call history cleared');
+}
+
+// ── AUDIO RING ───────────────────────────────────────────────────────
+function playRing() {
+    if (!document.getElementById('sound-toggle')?.checked) return;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playTone = (freq, start, dur) => {
+            const o = ctx.createOscillator(); const g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = freq; o.type = 'sine';
+            g.gain.setValueAtTime(0.3, ctx.currentTime+start);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+start+dur);
+            o.start(ctx.currentTime+start); o.stop(ctx.currentTime+start+dur);
+        };
+        for (let i=0;i<4;i++) { playTone(880,i*1.2,0.4); playTone(660,i*1.2+0.5,0.4); }
+        ringAudio = ctx;
+    } catch(e) {}
+}
+
+function stopRing() { if(ringAudio) { try{ringAudio.close();}catch(e){} ringAudio=null; } }
+
+// ── NOTIFICATIONS ────────────────────────────────────────────────────
+function toggleNotifications(el) {
+    if (el.checked) {
+        Notification.requestPermission().then(p => {
+            if (p !== 'granted') { el.checked=false; toast('⚠️ Notification permission denied'); }
+            else toast('✅ Notifications enabled');
+        });
+    }
+}
+
+// ── UI HELPERS ───────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+    ['home','log','settings'].forEach(t => {
+        document.getElementById(`tab-${t}`).style.display = t===tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+}
+
+function openWebsite() {
+    window.open('https://www.tengosolar.com', '_blank');
+}
+
+function toast(msg, dur=2800) {
+    const el = document.getElementById('agent-toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'), dur);
+}
+</script>
+</body>
+</html>
