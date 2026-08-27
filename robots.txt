@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://www.tengosolar.com/sitemap.xml
-
-# Disallow admin and auth pages from indexing
-Disallow: /#admin
-Disallow: /#dashboard
