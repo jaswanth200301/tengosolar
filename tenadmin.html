@@ -4,67 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EOI Dashboard — Tengo Solar Admin</title>
-<!--
-    ── SETUP ──────────────────────────────────────────────────────────
-    1. In Supabase, run this SQL once to create the shared table:
-
-        create table eoi_submissions (
-            id uuid primary key default gen_random_uuid(),
-            reference_id text unique not null,
-            created_at timestamptz default now(),
-            name text not null,
-            phone text not null,
-            is_whatsapp boolean default false,
-            email text not null,
-            city text not null,
-            property_type text default 'home',
-            property_owned boolean default true,
-            system_type text default 'unsure',
-            system_size text,
-            bill_range text,
-            preferred_time text,
-            message text,
-            consent boolean default false,
-            status text default 'new'
-        );
-
-        alter table eoi_submissions enable row level security;
-
-        -- Public site can only INSERT (submit a form), never read others' data
-        create policy "public can submit" on eoi_submissions
-            for insert to anon with check (true);
-
-        -- Only signed-in staff can read/update/delete
-        create policy "staff can manage" on eoi_submissions
-            for all to authenticated using (true) with check (true);
-
-       If you set this table up before "reference_id" existed, run instead:
-        alter table eoi_submissions
-            add column if not exists reference_id text,
-            add column if not exists is_whatsapp boolean default false,
-            add column if not exists property_owned boolean default true,
-            add column if not exists system_type text default 'unsure',
-            add column if not exists system_size text,
-            add column if not exists consent boolean default false;
-        -- then, once every existing row has a reference_id backfilled:
-        alter table eoi_submissions alter column reference_id set not null;
-        alter table eoi_submissions add constraint eoi_submissions_reference_id_key unique (reference_id);
-
-       Note: an earlier version of this file used an "email_verified" column
-       for optional email-OTP verification. That flow has been removed
-       (the customer form no longer sends any email at all — instead it
-       gives the customer a downloadable PDF of their submission after
-       review). If you still have that column, it's harmless to leave in
-       place, it's just no longer set by the customer form.
-
-    2. In Supabase → Authentication, create a user account for each staff
-       member who should have access (email + password). Anyone who can
-       sign in is treated as staff — there is no separate admin password
-       hardcoded here, unlike an earlier version of this site's admin panel.
-
-    3. Paste your project URL + anon key into SUPABASE_URL / SUPABASE_ANON_KEY
-       below (same values used in the customer-facing eoi-customer.html).
-    ─────────────────────────────────────────────────────────────────── -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -97,7 +36,7 @@
         font-family: 'Inter', system-ui, sans-serif;
         min-height: 100vh;
     }
-    h1, h2, h3 { font-family: 'Outfit', sans-serif; color: #fff; }
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; color: #fff; }
     .mono { font-family: 'JetBrains Mono', monospace; }
 
     /* ── LOGIN SCREEN ── */
@@ -133,7 +72,7 @@
     .login-card p.sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.6rem; }
     .field { margin-bottom: 1rem; }
     .field label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-body); }
-    input {
+    input, select, textarea {
         width: 100%;
         background: rgba(4,14,26,0.7);
         border: 1px solid var(--sky-rim);
@@ -144,7 +83,7 @@
         padding: 0.7rem 0.9rem;
         outline: none;
     }
-    input:focus { border-color: var(--sun-amber); }
+    input:focus, select:focus, textarea:focus { border-color: var(--sun-amber); }
     .btn {
         display: inline-flex;
         align-items: center;
@@ -300,34 +239,54 @@
         padding: 0.3rem 0.55rem;
     }
 
-    .btn-pdf {
+    .btn-action-icon {
         background: rgba(255,255,255,0.05);
         border: 1px solid var(--sky-rim);
         border-radius: var(--radius-sm);
         color: var(--text-body);
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         padding: 0.35rem 0.55rem;
         cursor: pointer;
         line-height: 1;
+        margin-right: 0.3rem;
     }
-    .btn-pdf:hover { border-color: var(--sun-amber); background: rgba(245,166,35,0.08); }
-    .btn-pdf-full {
+    .btn-action-icon:hover { border-color: var(--sun-amber); background: rgba(245,166,35,0.08); }
+
+    .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--sky-rim);
+        color: #fff;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-pdf-full, .btn-edit-full {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
         width: 100%;
-        background: rgba(245,166,35,0.1);
-        border: 1px solid rgba(245,166,35,0.3);
-        color: var(--sun-amber);
         border-radius: var(--radius-sm);
         font-size: 0.85rem;
         font-weight: 600;
         padding: 0.65rem;
         cursor: pointer;
-        margin-top: 1rem;
+        margin-top: 0.6rem;
+    }
+    .btn-pdf-full {
+        background: rgba(245,166,35,0.1);
+        border: 1px solid rgba(245,166,35,0.3);
+        color: var(--sun-amber);
     }
     .btn-pdf-full:hover { background: rgba(245,166,35,0.18); }
+    .btn-edit-full {
+        background: rgba(59,130,246,0.1);
+        border: 1px solid rgba(59,130,246,0.3);
+        color: var(--blue);
+    }
+    .btn-edit-full:hover { background: rgba(59,130,246,0.18); }
 
     .empty-state, .loading-state {
         text-align: center;
@@ -376,6 +335,39 @@
         min-height: 60px;
     }
 
+    /* ── EDIT MODAL ── */
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(4,14,26,0.85);
+        backdrop-filter: blur(5px);
+        z-index: 50;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+        background: linear-gradient(160deg, rgba(14,32,56,0.98), rgba(7,21,37,0.98));
+        border: 1px solid var(--sky-rim);
+        border-radius: var(--radius-xl);
+        width: 100%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 2rem;
+    }
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .pwd-verify-box {
+        background: rgba(245,166,35,0.06);
+        border: 1px solid rgba(245,166,35,0.25);
+        border-radius: var(--radius-sm);
+        padding: 0.9rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
     #toast {
         position: fixed;
         bottom: 1.5rem; left: 50%;
@@ -397,6 +389,7 @@
         .kpi-row .kpi-card:last-child { grid-column: span 2; }
         .table-card { overflow-x: auto; }
         table { min-width: 640px; }
+        .modal-grid { grid-template-columns: 1fr; }
     }
 </style>
 </head>
@@ -429,12 +422,6 @@
                         <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_login)" transform="rotate(225)" opacity="0.82"/>
                         <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_login)" transform="rotate(315)" opacity="0.82"/>
                         <circle r="13.5" fill="url(#rg1_login)"/>
-                        <line x1="-9" y1="-4.5" x2="9" y2="-4.5" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-9" y1="4.5" x2="9" y2="4.5" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-4.5" y1="-9" x2="-4.5" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="4.5" y1="-9" x2="4.5" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
                         <circle r="3.2" fill="#FFFEF0" opacity="0.96"/>
                     </g>
                 </svg>
@@ -460,38 +447,6 @@
     <div id="dashboard">
         <header class="top">
             <div class="brand">
-                <svg class="logo-mark" viewBox="0 0 200 200" width="24" height="24" style="flex-shrink:0;">
-                    <defs>
-                        <radialGradient id="rg1_adminhdr" cx="100" cy="100" r="66" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#FFFAAA"/>
-                            <stop offset="28%" stop-color="#FFC200"/>
-                            <stop offset="70%" stop-color="#FF7800"/>
-                            <stop offset="100%" stop-color="#FF4400"/>
-                        </radialGradient>
-                        <filter id="f1_adminhdr" x="-40%" y="-40%" width="180%" height="180%">
-                            <feGaussianBlur stdDeviation="3" result="blur"/>
-                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                    </defs>
-                    <g transform="translate(100,100)" filter="url(#f1_adminhdr)">
-                        <polygon points="0,-52 -8,-22 0,-13 8,-22" fill="url(#rg1_adminhdr)"/>
-                        <polygon points="0,-52 -8,-22 0,-13 8,-22" fill="url(#rg1_adminhdr)" transform="rotate(90)"/>
-                        <polygon points="0,-52 -8,-22 0,-13 8,-22" fill="url(#rg1_adminhdr)" transform="rotate(180)"/>
-                        <polygon points="0,-52 -8,-22 0,-13 8,-22" fill="url(#rg1_adminhdr)" transform="rotate(270)"/>
-                        <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_adminhdr)" transform="rotate(45)" opacity="0.82"/>
-                        <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_adminhdr)" transform="rotate(135)" opacity="0.82"/>
-                        <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_adminhdr)" transform="rotate(225)" opacity="0.82"/>
-                        <polygon points="0,-42 -5,-19 0,-13 5,-19" fill="url(#rg1_adminhdr)" transform="rotate(315)" opacity="0.82"/>
-                        <circle r="13.5" fill="url(#rg1_adminhdr)"/>
-                        <line x1="-9" y1="-4.5" x2="9" y2="-4.5" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-9" y1="4.5" x2="9" y2="4.5" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="-4.5" y1="-9" x2="-4.5" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <line x1="4.5" y1="-9" x2="4.5" y2="9" stroke="#07102A" stroke-width="1.4" opacity="0.65"/>
-                        <circle r="3.2" fill="#FFFEF0" opacity="0.96"/>
-                    </g>
-                </svg>
                 <span class="wordmark">Tengo Solar</span> <span class="amber">· EOI Dashboard</span>
             </div>
             <div style="display:flex;align-items:center;">
@@ -518,7 +473,7 @@
                     <option value="converted">Converted</option>
                     <option value="not_interested">Not interested</option>
                 </select>
-                <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+                <button class="btn-export" onclick="exportDayWiseCSV()">⬇ Export Day-wise CSV</button>
             </div>
 
             <div class="table-card">
@@ -528,10 +483,10 @@
                             <th>Name</th>
                             <th>Contact</th>
                             <th>City</th>
-                            <th>Bill range</th>
+                            <th>Capacity / Size</th>
                             <th>Submitted</th>
                             <th>Status</th>
-                            <th>PDF</th>
+                            <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -560,25 +515,125 @@
             <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;">Status</label>
             <select class="status-select" id="dStatus" style="width:100%;padding:0.55rem;"></select>
         </div>
+        <button class="btn-edit-full" onclick="openEditModal(currentDrawerId)">✏️ Edit Details</button>
         <button class="btn-pdf-full" onclick="downloadSubmissionPDF(currentDrawerId)">📄 Download PDF</button>
+    </div>
+
+    <!-- ══════════ EDIT MODAL (PASSWORD PROTECTED) ══════════ -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Edit Submission</h3>
+                <button class="drawer-close" onclick="closeEditModal()">✕</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="modal-grid">
+                    <div class="field">
+                        <label>Name</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="field">
+                        <label>Phone</label>
+                        <input type="text" id="editPhone" required>
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input type="email" id="editEmail" required>
+                    </div>
+                    <div class="field">
+                        <label>City</label>
+                        <input type="text" id="editCity" required>
+                    </div>
+                    <div class="field">
+                        <label>Property Type</label>
+                        <select id="editPropertyType">
+                            <option value="home">Home</option>
+                            <option value="business">Business</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Ownership</label>
+                        <select id="editPropertyOwned">
+                            <option value="true">Owned</option>
+                            <option value="false">Rented</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>System Type</label>
+                        <select id="editSystemType">
+                            <option value="on_grid">On-grid</option>
+                            <option value="off_grid">Off-grid</option>
+                            <option value="hybrid">Hybrid (battery)</option>
+                            <option value="unsure">Not sure yet</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>System Size / Capacity</label>
+                        <select id="editSystemSize">
+                            <option value="under_3kw">Under 3 kW</option>
+                            <option value="3_5kw">3 – 5 kW</option>
+                            <option value="5_10kw">5 – 10 kW</option>
+                            <option value="10kw_plus">10 kW+</option>
+                            <option value="">Not sure</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Bill Range</label>
+                        <input type="text" id="editBillRange">
+                    </div>
+                    <div class="field">
+                        <label>Preferred Time</label>
+                        <input type="text" id="editPreferredTime">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Customer Message</label>
+                    <textarea id="editMessage" rows="2"></textarea>
+                </div>
+
+                <div class="pwd-verify-box">
+                    <label style="font-size:0.8rem; font-weight:600; color:var(--sun-amber); display:block; margin-bottom:0.35rem;">
+                        🔒 Staff Password Verification Required
+                    </label>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">
+                        Enter your staff account password to authorize and commit this update.
+                    </p>
+                    <input type="password" id="editAuthPassword" placeholder="Enter your password" required>
+                </div>
+
+                <div style="display:flex; gap:0.75rem; margin-top:1.25rem;">
+                    <button type="button" class="btn-secondary" style="flex:1;" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn" style="flex:2;" id="saveEditBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div id="toast"></div>
 
     <script>
-        // ── CONFIG ──────────────────────────────────────────────────────
-        // Same project as eoi-customer.html — this dashboard reads/writes
-        // the "eoi_submissions" table, gated by real Supabase auth (RLS
-        // policies restrict reads/writes to signed-in users only).
         const SUPABASE_URL = 'https://lkvhomycyufmzwtyjvbz.supabase.co';       // e.g. 'https://xxxx.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';  // the PUBLIC "anon" key
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';  // your PUBLIC anon key
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const STATUSES = ['new', 'contacted', 'quoted', 'converted', 'not_interested'];
+        const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
+        const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
+        
+        // Capacity mapping in kW for daily total capacity computation
+        const SYSTEM_SIZE_KW = {
+            'under_3kw': 2.5,
+            '3_5kw': 4.0,
+            '5_10kw': 7.5,
+            '10kw_plus': 10.0
+        };
+
         let sb = null;
         let allRows = [];
+        let currentUser = null;
         let currentDrawerId = null;
 
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -592,7 +647,7 @@
             setTimeout(() => t.classList.remove('show'), 3200);
         }
 
-        // ── AUTH ──────────────────────────────────────────────────────
+        // ── AUTH ──
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const errBox = document.getElementById('loginError');
@@ -610,7 +665,6 @@
             btn.disabled = true; btn.textContent = 'Signing in…';
 
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
             btn.disabled = false; btn.textContent = 'Sign in';
 
             if (error) {
@@ -623,26 +677,27 @@
 
         async function signOut() {
             if (sb) await sb.auth.signOut();
+            currentUser = null;
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('loginForm').reset();
         }
 
         function enterDashboard(user) {
+            currentUser = user;
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('userEmail').textContent = user.email;
             loadSubmissions();
         }
 
-        // Restore session on refresh
         (async () => {
             if (!sb) return;
             const { data: { session } } = await sb.auth.getSession();
             if (session?.user) enterDashboard(session.user);
         })();
 
-        // ── DATA ──────────────────────────────────────────────────────
+        // ── DATA ──
         async function loadSubmissions() {
             document.getElementById('loadingState').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
@@ -678,7 +733,6 @@
         }
 
         function statusLabel(s) { return (s || 'new').replace('_', ' '); }
-
         function escHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
@@ -689,7 +743,7 @@
             return allRows.filter(r => {
                 if (statusF && r.status !== statusF) return false;
                 if (!q) return true;
-                return [r.name, r.phone, r.city, r.reference_id].some(v => (v || '').toLowerCase().includes(q));
+                return [r.name, r.phone, r.city, r.reference_id, r.system_size].some(v => (v || '').toLowerCase().includes(q));
             });
         }
 
@@ -710,10 +764,13 @@
                     <td>${escHtml(r.phone)}${r.is_whatsapp ? '<span class="badge-tag wa">WA</span>' : ''}
                         <div class="sub">${escHtml(r.email) || ''}</div></td>
                     <td>${escHtml(r.city)}</td>
-                    <td class="sub">${escHtml(r.bill_range) || '—'}</td>
+                    <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
                     <td class="sub">${r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
                     <td><span class="status-pill ${escHtml(r.status || 'new')}">${escHtml(statusLabel(r.status))}</span></td>
-                    <td><button class="btn-pdf" title="Download PDF" onclick="event.stopPropagation(); downloadSubmissionPDF('${r.id}')">📄</button></td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <button class="btn-action-icon" title="Edit submission" onclick="event.stopPropagation(); openEditModal('${r.id}')">✏️</button>
+                        <button class="btn-action-icon" title="Download PDF" onclick="event.stopPropagation(); downloadSubmissionPDF('${r.id}')">📄</button>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -721,10 +778,7 @@
         document.getElementById('searchBox').addEventListener('input', renderTable);
         document.getElementById('statusFilter').addEventListener('change', renderTable);
 
-        // ── DETAIL DRAWER ─────────────────────────────────────────────
-        const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
-        const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
-
+        // ── DETAIL DRAWER ──
         function openDrawer(id) {
             const r = allRows.find(x => x.id === id);
             if (!r) return;
@@ -768,38 +822,197 @@
             showToast('✓ Status updated');
         });
 
-        // ── EXPORT ────────────────────────────────────────────────────
-        // The reference number is generated client-side by the customer
-        // form (4 random letters + 6-char timestamp, 10 chars total) and
-        // stored directly in the "reference_id" column — read it straight
-        // from the row rather than deriving it, so there's exactly one
-        // source of truth instead of two formulas that could drift apart.
-        function exportCSV() {
+        // ── EDIT MODAL & PASSWORD CONFIRMATION ──
+        function openEditModal(id) {
+            const r = allRows.find(x => x.id === id);
+            if (!r) return;
+
+            document.getElementById('editId').value = r.id;
+            document.getElementById('editName').value = r.name || '';
+            document.getElementById('editPhone').value = r.phone || '';
+            document.getElementById('editEmail').value = r.email || '';
+            document.getElementById('editCity').value = r.city || '';
+            document.getElementById('editPropertyType').value = r.property_type || 'home';
+            document.getElementById('editPropertyOwned').value = r.property_owned === false ? 'false' : 'true';
+            document.getElementById('editSystemType').value = r.system_type || 'unsure';
+            document.getElementById('editSystemSize').value = r.system_size || '';
+            document.getElementById('editBillRange').value = r.bill_range || '';
+            document.getElementById('editPreferredTime').value = r.preferred_time || '';
+            document.getElementById('editMessage').value = r.message || '';
+            document.getElementById('editAuthPassword').value = '';
+
+            document.getElementById('editModalOverlay').classList.add('open');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModalOverlay').classList.remove('open');
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const enteredPassword = document.getElementById('editAuthPassword').value;
+            const saveBtn = document.getElementById('saveEditBtn');
+
+            if (!enteredPassword) {
+                showToast('⚠️ Please enter your password');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Verifying password…';
+
+            // Verify staff identity using current user email and provided password
+            const { error: authErr } = await sb.auth.signInWithPassword({
+                email: currentUser.email,
+                password: enteredPassword
+            });
+
+            if (authErr) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+                showToast('❌ Invalid password. Edit aborted.');
+                return;
+            }
+
+            saveBtn.textContent = 'Saving changes…';
+
+            const payload = {
+                name: document.getElementById('editName').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                city: document.getElementById('editCity').value.trim(),
+                property_type: document.getElementById('editPropertyType').value,
+                property_owned: document.getElementById('editPropertyOwned').value === 'true',
+                system_type: document.getElementById('editSystemType').value,
+                system_size: document.getElementById('editSystemSize').value || null,
+                bill_range: document.getElementById('editBillRange').value.trim(),
+                preferred_time: document.getElementById('editPreferredTime').value.trim(),
+                message: document.getElementById('editMessage').value.trim()
+            };
+
+            const { error: updateErr } = await sb
+                .from('eoi_submissions')
+                .update(payload)
+                .eq('id', id);
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+
+            if (updateErr) {
+                showToast('❌ Failed to update submission');
+                console.error(updateErr);
+                return;
+            }
+
+            // Sync local state
+            const targetIndex = allRows.findIndex(r => r.id === id);
+            if (targetIndex !== -1) {
+                allRows[targetIndex] = { ...allRows[targetIndex], ...payload };
+            }
+
+            closeEditModal();
+            renderTable();
+            renderKPIs();
+            if (currentDrawerId === id) openDrawer(id);
+            showToast('✓ Submission updated successfully');
+        });
+
+        // ── DAY-WISE CSV EXPORT WITH DAILY TOTAL CAPACITIES ──
+        function exportDayWiseCSV() {
             const rows = filteredRows();
             if (rows.length === 0) { showToast('Nothing to export'); return; }
-            const headers = ['Reference','Name','Phone','WhatsApp','Email','City','Property Type','Owned or Rented','System Type','System Size','Bill Range','Preferred Time','Consent','Status','Submitted','Message'];
-            const csvRows = [headers.join(',')];
+
+            // Group submissions by Date (YYYY-MM-DD)
+            const grouped = {};
             rows.forEach(r => {
-                const line = [
-                    r.reference_id, r.name, r.phone, r.is_whatsapp ? 'Yes' : 'No',
-                    r.email, r.city,
-                    r.property_type, r.property_owned === false ? 'Rented' : 'Owned',
-                    SYSTEM_TYPE_LABELS[r.system_type] || 'Not sure', SYSTEM_SIZE_LABELS[r.system_size] || 'Not sure',
-                    r.bill_range, r.preferred_time, r.consent ? 'Yes' : 'No',
-                    r.status, r.created_at, r.message
-                ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
-                csvRows.push(line);
+                const dateKey = r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : 'Unknown Date';
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(r);
             });
-            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+
+            // Sort dates descending
+            const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+            const csvRows = [];
+
+            // Standard Header
+            csvRows.push([
+                'Date Group',
+                'Reference',
+                'Name',
+                'Phone',
+                'WhatsApp',
+                'Email',
+                'City',
+                'Property Type',
+                'Owned/Rented',
+                'System Type',
+                'System Size',
+                'Estimated Capacity (kW)',
+                'Bill Range',
+                'Preferred Time',
+                'Consent',
+                'Status',
+                'Submitted At',
+                'Message'
+            ].join(','));
+
+            sortedDates.forEach(date => {
+                const dayItems = grouped[date];
+                let dayTotalKW = 0;
+
+                dayItems.forEach(r => {
+                    const capacityKW = SYSTEM_SIZE_KW[r.system_size] || 0;
+                    dayTotalKW += capacityKW;
+
+                    const rowData = [
+                        date,
+                        r.reference_id || '',
+                        r.name || '',
+                        r.phone || '',
+                        r.is_whatsapp ? 'Yes' : 'No',
+                        r.email || '',
+                        r.city || '',
+                        r.property_type || '',
+                        r.property_owned === false ? 'Rented' : 'Owned',
+                        SYSTEM_TYPE_LABELS[r.system_type] || r.system_type || 'Not sure',
+                        SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || 'Not sure',
+                        capacityKW > 0 ? `${capacityKW} kW` : 'Not specified',
+                        r.bill_range || '',
+                        r.preferred_time || '',
+                        r.consent ? 'Yes' : 'No',
+                        r.status || 'new',
+                        r.created_at || '',
+                        r.message || ''
+                    ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
+
+                    csvRows.push(rowData);
+                });
+
+                // Day Total Summary Row
+                csvRows.push([
+                    `"DAY SUMMARY [${date}]"`,
+                    `"Total Submissions: ${dayItems.length}"`,
+                    '""', '""', '""', '""', '""', '""', '""', '""',
+                    `"TOTAL CAPACITY FOR DAY"`,
+                    `"${dayTotalKW.toFixed(1)} kW"`,
+                    '""', '""', '""', '""', '""', '""'
+                ].join(','));
+
+                // Blank separation row
+                csvRows.push('');
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `tengo-solar-eoi-${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `tengo-solar-eoi-daywise-${new Date().toISOString().slice(0, 10)}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         }
 
-        // ── PDF EXPORT (single submission) ───────────────────────────
+        // ── PDF EXPORT ──
         function downloadSubmissionPDF(id) {
             const r = allRows.find(x => x.id === id);
             if (!r) { showToast('Could not find that submission'); return; }
@@ -809,7 +1022,6 @@
             const doc = new jsPDF({ unit: 'pt', format: 'a4' });
             const pageWidth = doc.internal.pageSize.getWidth();
 
-            // Header band, matching the amber brand color
             doc.setFillColor(224, 123, 10);
             doc.rect(0, 0, pageWidth, 72, 'F');
             doc.setTextColor(255, 255, 255);
