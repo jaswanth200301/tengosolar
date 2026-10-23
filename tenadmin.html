@@ -19,6 +19,7 @@
         --leaf-dim:   #16A34A;
         --red:        #EF4444;
         --blue:       #3B82F6;
+        --cyan:       #06B6D4;
         --text-body:  #C8DAE8;
         --text-muted: #6B8FA8;
         --text-dim:   #3E607E;
@@ -134,10 +135,10 @@
     header.top .brand span.amber { color: var(--sun-amber); }
     #userEmail { font-size: 0.78rem; color: var(--text-muted); margin-right: 0.9rem; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
 
     /* KPI row */
-    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
     .kpi-card {
         background: linear-gradient(160deg, rgba(14,32,56,0.75), rgba(7,21,37,0.75));
         border: 1px solid var(--sky-rim);
@@ -147,6 +148,7 @@
     .kpi-card .lbl { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
     .kpi-card .num { font-family: 'JetBrains Mono', monospace; font-size: 1.6rem; font-weight: 600; color: #fff; }
     .kpi-card.new .num { color: var(--sun-amber); }
+    .kpi-card.assigned .num { color: var(--cyan); }
     .kpi-card.converted .num { color: var(--leaf); }
 
     /* toolbar */
@@ -166,7 +168,7 @@
         padding: 0.6rem 0.85rem;
         outline: none;
     }
-    .toolbar input { flex: 1; min-width: 180px; }
+    .toolbar input { flex: 1; min-width: 220px; }
     .toolbar input:focus, .toolbar select:focus { border-color: var(--sun-amber); }
     .toolbar select option { background: var(--sky-deep); }
     .badge-tag {
@@ -214,6 +216,7 @@
     tbody td { padding: 0.85rem 1rem; font-size: 0.85rem; vertical-align: top; }
     td.name-cell { color: #fff; font-weight: 600; }
     td.sub { color: var(--text-muted); font-size: 0.78rem; }
+    .address-cell { max-width: 260px; line-height: 1.4; }
 
     .status-pill {
         display: inline-block;
@@ -222,9 +225,11 @@
         padding: 0.25rem 0.65rem;
         border-radius: 999px;
         text-transform: capitalize;
+        white-space: nowrap;
     }
     .status-pill.new { background: rgba(245,166,35,0.15); color: var(--sun-amber); }
     .status-pill.contacted { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .status-pill.assigned_engineer { background: rgba(6,182,212,0.18); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
     .status-pill.quoted { background: rgba(168,85,247,0.15); color: #c084fc; }
     .status-pill.converted { background: rgba(34,197,94,0.15); color: var(--leaf); }
     .status-pill.not_interested { background: rgba(239,68,68,0.15); color: var(--red); }
@@ -306,7 +311,7 @@
     .drawer {
         position: fixed;
         top: 0; right: 0; bottom: 0;
-        width: 380px;
+        width: 440px;
         max-width: calc(100vw - 2rem);
         background: linear-gradient(160deg, rgba(14,32,56,0.98), rgba(7,21,37,0.98));
         border-left: 1px solid var(--sky-rim);
@@ -318,11 +323,11 @@
     }
     .drawer.open { transform: translateX(0); }
     .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; float: right; }
-    .drawer h3 { font-size: 1.15rem; margin: 0.5rem 0 0.2rem; }
+    .drawer h3 { font-size: 1.25rem; margin: 0.5rem 0 0.2rem; }
     .drawer .drawer-sub { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.2rem; }
-    .drawer dl { display: grid; grid-template-columns: 100px 1fr; gap: 0.6rem 0.75rem; font-size: 0.85rem; margin-bottom: 1.4rem; }
+    .drawer dl { display: grid; grid-template-columns: 110px 1fr; gap: 0.6rem 0.75rem; font-size: 0.85rem; margin-bottom: 1.4rem; }
     .drawer dt { color: var(--text-muted); }
-    .drawer dd { color: var(--text-body); }
+    .drawer dd { color: var(--text-body); word-break: break-word; }
     .drawer .msg-box {
         background: rgba(4,14,26,0.6);
         border: 1px solid var(--sky-rim);
@@ -332,6 +337,7 @@
         color: var(--text-body);
         margin-bottom: 1.4rem;
         min-height: 60px;
+        white-space: pre-wrap;
     }
 
     /* ── MODALS ── */
@@ -351,7 +357,7 @@
         border: 1px solid var(--sky-rim);
         border-radius: var(--radius-xl);
         width: 100%;
-        max-width: 600px;
+        max-width: 650px;
         max-height: 90vh;
         overflow-y: auto;
         padding: 2rem;
@@ -384,11 +390,13 @@
     }
     #toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-    @media (max-width: 768px) {
-        .kpi-row { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 900px) {
+        .kpi-row { grid-template-columns: repeat(2, 1fr); }
         .kpi-row .kpi-card:last-child { grid-column: span 2; }
+    }
+    @media (max-width: 768px) {
         .table-card { overflow-x: auto; }
-        table { min-width: 640px; }
+        table { min-width: 720px; }
         .modal-grid { grid-template-columns: 1fr; }
     }
 </style>
@@ -459,16 +467,18 @@
             <div class="kpi-row">
                 <div class="kpi-card"><div class="lbl">Total EOIs</div><div class="num" id="kpiTotal">—</div></div>
                 <div class="kpi-card new"><div class="lbl">New</div><div class="num" id="kpiNew">—</div></div>
+                <div class="kpi-card assigned"><div class="lbl">Assigned Eng.</div><div class="num" id="kpiAssigned">—</div></div>
                 <div class="kpi-card"><div class="lbl">Last 7 days</div><div class="num" id="kpiWeek">—</div></div>
                 <div class="kpi-card converted"><div class="lbl">Converted</div><div class="num" id="kpiConverted">—</div></div>
             </div>
 
             <div class="toolbar">
-                <input type="text" id="searchBox" placeholder="Search by name, phone, city or reference…">
+                <input type="text" id="searchBox" placeholder="Search by name, phone, address, village, district, ref…">
                 <select id="statusFilter">
                     <option value="">All statuses</option>
                     <option value="new">New</option>
                     <option value="contacted">Contacted</option>
+                    <option value="assigned_engineer">Assigned Engineer</option>
                     <option value="quoted">Quoted</option>
                     <option value="converted">Converted</option>
                     <option value="not_interested">Not interested</option>
@@ -482,7 +492,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Contact</th>
-                            <th>City</th>
+                            <th>Installation Address</th>
                             <th>Capacity / Size</th>
                             <th>Submitted</th>
                             <th>Status</th>
@@ -527,7 +537,7 @@
                 <button class="drawer-close" onclick="closeCsvModal()">✕</button>
             </div>
             <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
-                Select the specific day you want to export. The CSV will include all submissions for that date along with the calculated daily total solar capacity.
+                Select the specific day you want to export. The CSV will include complete address details along with the calculated daily solar capacity.
             </p>
             <div class="field">
                 <label>Select Date</label>
@@ -563,9 +573,25 @@
                         <input type="email" id="editEmail" required>
                     </div>
                     <div class="field">
-                        <label>City</label>
-                        <input type="text" id="editCity" required>
+                        <label>State</label>
+                        <input type="text" id="editState" placeholder="e.g. Andhra Pradesh">
                     </div>
+                    <div class="field">
+                        <label>District</label>
+                        <input type="text" id="editDistrict" placeholder="e.g. Guntur">
+                    </div>
+                    <div class="field">
+                        <label>Village / Town</label>
+                        <input type="text" id="editVillage" placeholder="e.g. Amaravati">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Full Street Address / Landmark / Pincode</label>
+                    <textarea id="editAddress" rows="2" placeholder="D.No, Street, Landmark, Pincode"></textarea>
+                </div>
+
+                <div class="modal-grid">
                     <div class="field">
                         <label>Property Type</label>
                         <select id="editPropertyType">
@@ -608,6 +634,7 @@
                         <input type="text" id="editPreferredTime">
                     </div>
                 </div>
+
                 <div class="field">
                     <label>Customer Message</label>
                     <textarea id="editMessage" rows="2"></textarea>
@@ -640,11 +667,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        const STATUSES = ['new', 'contacted', 'quoted', 'converted', 'not_interested'];
+        // Updated Status list with 'assigned_engineer'
+        const STATUSES = ['new', 'contacted', 'assigned_engineer', 'quoted', 'converted', 'not_interested'];
         const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
         const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
         
-        // Typical kW numerical values for total capacity calculations
         const SYSTEM_SIZE_KW = {
             'under_3kw': 2.5,
             '3_5kw': 4.0,
@@ -666,6 +693,20 @@
             t.textContent = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        // Helper to get formatted full address across varying payloads
+        function getFullAddress(r) {
+            if (r.address && r.address.trim()) return r.address.trim();
+            const parts = [r.village, r.district, r.state].filter(Boolean);
+            if (parts.length > 0) return parts.join(', ');
+            return r.city || r.location || '—';
+        }
+
+        // Helper to format status labels cleanly
+        function statusLabel(s) {
+            if (s === 'assigned_engineer') return 'Assigned Engineer';
+            return (s || 'new').replace(/_/g, ' ');
         }
 
         // ── AUTH ──
@@ -718,7 +759,7 @@
             if (session?.user) enterDashboard(session.user);
         })();
 
-        // ── DATA ──
+        // ── DATA FETCH ──
         async function loadSubmissions() {
             document.getElementById('loadingState').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
@@ -743,17 +784,18 @@
         function renderKPIs() {
             const total = allRows.length;
             const newCount = allRows.filter(r => r.status === 'new').length;
+            const assignedCount = allRows.filter(r => r.status === 'assigned_engineer').length;
             const converted = allRows.filter(r => r.status === 'converted').length;
             const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             const lastWeek = allRows.filter(r => new Date(r.created_at).getTime() >= weekAgo).length;
 
             document.getElementById('kpiTotal').textContent = total;
             document.getElementById('kpiNew').textContent = newCount;
+            document.getElementById('kpiAssigned').textContent = assignedCount;
             document.getElementById('kpiWeek').textContent = lastWeek;
             document.getElementById('kpiConverted').textContent = converted;
         }
 
-        function statusLabel(s) { return (s || 'new').replace('_', ' '); }
         function escHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
@@ -764,7 +806,9 @@
             return allRows.filter(r => {
                 if (statusF && r.status !== statusF) return false;
                 if (!q) return true;
-                return [r.name, r.phone, r.city, r.reference_id, r.system_size].some(v => (v || '').toLowerCase().includes(q));
+                const addr = getFullAddress(r).toLowerCase();
+                return [r.name, r.phone, r.city, r.state, r.district, r.village, r.address, r.reference_id, r.system_size, addr]
+                    .some(v => (v || '').toLowerCase().includes(q));
             });
         }
 
@@ -779,21 +823,31 @@
             }
             document.getElementById('emptyState').style.display = 'none';
 
-            tbody.innerHTML = rows.map(r => `
-                <tr onclick="openDrawer('${r.id}')">
-                    <td class="name-cell">${escHtml(r.name)}</td>
-                    <td>${escHtml(r.phone)}${r.is_whatsapp ? '<span class="badge-tag wa">WA</span>' : ''}
-                        <div class="sub">${escHtml(r.email) || ''}</div></td>
-                    <td>${escHtml(r.city)}</td>
-                    <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
-                    <td class="sub">${r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
-                    <td><span class="status-pill ${escHtml(r.status || 'new')}">${escHtml(statusLabel(r.status))}</span></td>
-                    <td style="text-align:right; white-space:nowrap;">
-                        <button class="btn-action-icon" title="Edit submission" onclick="event.stopPropagation(); openEditModal('${r.id}')">✏️</button>
-                        <button class="btn-action-icon" title="Download PDF" onclick="event.stopPropagation(); downloadSubmissionPDF('${r.id}')">📄</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = rows.map(r => {
+                const fullAddr = getFullAddress(r);
+                const locTag = (r.district || r.state) ? `${r.district ? escHtml(r.district) : ''}${r.state ? ', ' + escHtml(r.state) : ''}` : '';
+
+                return `
+                    <tr onclick="openDrawer('${r.id}')">
+                        <td class="name-cell">${escHtml(r.name)}</td>
+                        <td>
+                            ${escHtml(r.phone)}${r.is_whatsapp ? '<span class="badge-tag wa">WA</span>' : ''}
+                            <div class="sub">${escHtml(r.email) || ''}</div>
+                        </td>
+                        <td class="address-cell">
+                            <div>${escHtml(fullAddr)}</div>
+                            ${locTag ? `<div class="sub" style="color:var(--sun-amber); font-size:0.72rem; margin-top:2px;">📍 ${locTag}</div>` : ''}
+                        </td>
+                        <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
+                        <td class="sub">${r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
+                        <td><span class="status-pill ${escHtml(r.status || 'new')}">${escHtml(statusLabel(r.status))}</span></td>
+                        <td style="text-align:right; white-space:nowrap;">
+                            <button class="btn-action-icon" title="Edit submission" onclick="event.stopPropagation(); openEditModal('${r.id}')">✏️</button>
+                            <button class="btn-action-icon" title="Download PDF" onclick="event.stopPropagation(); downloadSubmissionPDF('${r.id}')">📄</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         document.getElementById('searchBox').addEventListener('input', renderTable);
@@ -805,11 +859,19 @@
             if (!r) return;
             currentDrawerId = id;
 
+            const fullAddr = getFullAddress(r);
+
             document.getElementById('dName').textContent = r.name;
-            document.getElementById('dSub').textContent = `${r.reference_id || '—'} · ${r.city} · ${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`;
+            document.getElementById('dSub').textContent = `${r.reference_id || '—'} · ${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`;
+            
             document.getElementById('dList').innerHTML = `
                 <dt>Phone</dt><dd>${escHtml(r.phone)} ${r.is_whatsapp ? '<span class="badge-tag wa">WA</span>' : ''}</dd>
                 <dt>Email</dt><dd>${escHtml(r.email) || '—'}</dd>
+                <dt>Full Address</dt><dd style="color:#fff; font-weight:500;">${escHtml(fullAddr)}</dd>
+                <dt>Village / Town</dt><dd>${escHtml(r.village || '—')}</dd>
+                <dt>District</dt><dd>${escHtml(r.district || '—')}</dd>
+                <dt>State</dt><dd>${escHtml(r.state || '—')}</dd>
+                <dt>Property</dt><dd>${r.property_type === 'business' ? 'Business' : 'Home'} (${r.property_owned === false ? 'Rented' : 'Owned'})</dd>
                 <dt>System type</dt><dd>${SYSTEM_TYPE_LABELS[r.system_type] || 'Not sure yet'}</dd>
                 <dt>System size</dt><dd>${SYSTEM_SIZE_LABELS[r.system_size] || 'Not sure'}</dd>
                 <dt>Bill range</dt><dd>${escHtml(r.bill_range) || '—'}</dd>
@@ -818,6 +880,7 @@
                 <dt>Submitted</dt><dd>${r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : '—'}</dd>
             `;
             document.getElementById('dMessage').textContent = r.message || 'No message left.';
+            
             const statusSel = document.getElementById('dStatus');
             statusSel.innerHTML = STATUSES.map(s => `<option value="${s}" ${s === (r.status||'new') ? 'selected' : ''}>${statusLabel(s)}</option>`).join('');
 
@@ -852,7 +915,10 @@
             document.getElementById('editName').value = r.name || '';
             document.getElementById('editPhone').value = r.phone || '';
             document.getElementById('editEmail').value = r.email || '';
-            document.getElementById('editCity').value = r.city || '';
+            document.getElementById('editState').value = r.state || '';
+            document.getElementById('editDistrict').value = r.district || '';
+            document.getElementById('editVillage').value = r.village || '';
+            document.getElementById('editAddress').value = r.address || r.city || '';
             document.getElementById('editPropertyType').value = r.property_type || 'home';
             document.getElementById('editPropertyOwned').value = r.property_owned === false ? 'false' : 'true';
             document.getElementById('editSystemType').value = r.system_type || 'unsure';
@@ -883,7 +949,6 @@
             saveBtn.disabled = true;
             saveBtn.textContent = 'Verifying password…';
 
-            // Verify staff identity using current user email and entered password
             const { error: authErr } = await sb.auth.signInWithPassword({
                 email: currentUser.email,
                 password: enteredPassword
@@ -898,11 +963,20 @@
 
             saveBtn.textContent = 'Saving changes…';
 
+            const stateVal = document.getElementById('editState').value.trim();
+            const distVal = document.getElementById('editDistrict').value.trim();
+            const vlgVal = document.getElementById('editVillage').value.trim();
+            const addrVal = document.getElementById('editAddress').value.trim();
+
             const payload = {
                 name: document.getElementById('editName').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
                 email: document.getElementById('editEmail').value.trim(),
-                city: document.getElementById('editCity').value.trim(),
+                state: stateVal,
+                district: distVal,
+                village: vlgVal,
+                address: addrVal,
+                city: addrVal, // Keep synchronized for legacy table column
                 property_type: document.getElementById('editPropertyType').value,
                 property_owned: document.getElementById('editPropertyOwned').value === 'true',
                 system_type: document.getElementById('editSystemType').value,
@@ -940,7 +1014,6 @@
 
         // ── DATE-WISE CSV EXPORT ──
         function openCsvModal() {
-            // Pre-fill modal date with today in local YYYY-MM-DD
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -960,10 +1033,9 @@
                 return;
             }
 
-            // Filter submissions matching the chosen date (in local date)
             const matchedRows = allRows.filter(r => {
                 if (!r.created_at) return false;
-                const localDate = new Date(r.created_at).toLocaleDateString('en-CA'); // outputs YYYY-MM-DD
+                const localDate = new Date(r.created_at).toLocaleDateString('en-CA');
                 return localDate === targetDate;
             });
 
@@ -980,7 +1052,10 @@
                 'Phone',
                 'WhatsApp',
                 'Email',
-                'City',
+                'Full Address',
+                'Village / Town',
+                'District',
+                'State',
                 'Property Type',
                 'Ownership',
                 'System Type',
@@ -1007,7 +1082,10 @@
                     r.phone || '',
                     r.is_whatsapp ? 'Yes' : 'No',
                     r.email || '',
-                    r.city || '',
+                    getFullAddress(r),
+                    r.village || '',
+                    r.district || '',
+                    r.state || '',
                     r.property_type || '',
                     r.property_owned === false ? 'Rented' : 'Owned',
                     SYSTEM_TYPE_LABELS[r.system_type] || r.system_type || 'Not sure',
@@ -1016,7 +1094,7 @@
                     r.bill_range || '',
                     r.preferred_time || '',
                     r.consent ? 'Yes' : 'No',
-                    r.status || 'new',
+                    statusLabel(r.status),
                     r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN') : '',
                     r.message || ''
                 ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
@@ -1024,15 +1102,12 @@
                 csvRows.push(row);
             });
 
-            // Blank row
             csvRows.push('');
-
-            // Daily Capacity Summary Row
             csvRows.push([
                 `"DAILY SUMMARY"`,
                 `"Date: ${targetDate}"`,
                 `"Total Submissions: ${matchedRows.length}"`,
-                '""', '""', '""', '""', '""', '""', '""',
+                '""', '""', '""', '""', '""', '""', '""', '""', '""', '""',
                 `"TOTAL CAPACITY FOR THE DAY"`,
                 `"${dayTotalKW.toFixed(1)} kW"`,
                 '""', '""', '""', '""', '""', '""'
@@ -1093,7 +1168,10 @@
             const fields = [
                 ['Phone', `${r.phone || '—'}${r.is_whatsapp ? '  (WhatsApp)' : ''}`],
                 ['Email', r.email || '—'],
-                ['City', r.city || '—'],
+                ['Installation Address', getFullAddress(r)],
+                ['Village / Town', r.village || '—'],
+                ['District', r.district || '—'],
+                ['State', r.state || '—'],
                 ['Property', `${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`],
                 ['System Type', SYSTEM_TYPE_LABELS[r.system_type] || 'Not sure yet'],
                 ['System Size', SYSTEM_SIZE_LABELS[r.system_size] || 'Not sure'],
@@ -1102,20 +1180,23 @@
                 ['Consent to Contact', r.consent ? 'Yes' : 'Not recorded'],
                 ['Status', statusLabel(r.status)]
             ];
+
             fields.forEach(([label, val]) => {
                 doc.setTextColor(20, 20, 20);
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(10);
                 doc.text(label, 40, y);
                 doc.setFont('helvetica', 'normal');
-                doc.text(String(val), 210, y);
-                y += 22;
+                
+                const valLines = doc.splitTextToSize(String(val), pageWidth - 250);
+                doc.text(valLines, 210, y);
+                y += Math.max(22, valLines.length * 13 + 8);
             });
 
-            y += 12;
+            y += 6;
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
-            doc.text('Message', 40, y);
+            doc.text('Customer Message', 40, y);
             y += 16;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9.5);
