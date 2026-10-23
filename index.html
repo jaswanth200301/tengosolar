@@ -182,9 +182,10 @@
             background: linear-gradient(90deg, transparent, theme("colors.sun-deep"), transparent);
             opacity: 0.6
         }
+
         /* --- Overrides for Form Inputs and Focus Visibility --- */
         .form-input, .form-select, textarea.form-input {
-            background-color: rgba(4, 14, 26, 0.75) !important;
+            background-color: rgba(4, 14, 26, 0.8) !important;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             color: #ffffff !important;
@@ -202,7 +203,7 @@
             background-color: #071525 !important;
             color: #ffffff !important;
             outline: none !important;
-            box-shadow: 0 0 0 2px rgba(255, 216, 77, 0.25) !important;
+            box-shadow: 0 0 0 2px rgba(255, 216, 77, 0.3) !important;
         }
         .form-input::placeholder {
             color: theme("colors.text-muted") !important;
@@ -212,6 +213,7 @@
             background-color: theme("colors.sky-deep");
             color: #ffffff;
         }
+
         .progress-bar-container {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: theme("borderRadius.full");
@@ -332,38 +334,45 @@
             accent-color: theme("colors.sun-core");
             cursor: pointer
         }
+
+        /* --- Clear Validation Styles --- */
         .field-error {
             display: none;
-            color: theme("colors.error");
+            color: #ffb4ab !important;
             font-size: 0.75rem;
-            margin-top: 0.35rem
+            margin-top: 0.35rem;
+            font-weight: 500;
         }
         .field.invalid input, .field.invalid select, .field.invalid textarea {
-            border-color: theme("colors.error") !important;
-            box-shadow: 0 0 0 1px theme("colors.error") !important;
+            border: 1.5px solid #ffb4ab !important;
+            background-color: rgba(147, 0, 10, 0.2) !important;
         }
         .field.invalid .field-error {
             display: block !important;
         }
-        .field.invalid .check-row {
-            color: theme("colors.error") !important;
+        .field.invalid .check-row span {
+            color: #ffb4ab !important;
+            font-weight: 600;
         }
+
         #toast {
             position: fixed;
             bottom: 1.5rem;
             left: 50%;
             transform: translatex(-50%) translatey(20px);
             background: rgba(14, 32, 56, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid theme("colors.error");
+            backdrop-filter: blur(12px);
+            border: 1px solid #ffb4ab;
             color: #fff;
-            font-size: 0.85rem;
-            padding: 0.75rem 1.2rem;
+            font-size: 0.88rem;
+            font-weight: 500;
+            padding: 0.8rem 1.4rem;
             border-radius: theme("borderRadius.lg");
             opacity: 0;
             visibility: hidden;
             transition: all 0.25s ease;
-            z-index: 999
+            z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #toast.show {
             opacity: 1;
@@ -1109,11 +1118,11 @@
             const total = 5;
             document.getElementById('progressFill').style.width = `${((filled + consentDone) / total) * 100}%`;
         }
+
         requiredIds.forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener('input', () => {
                 updateProgress();
-                // Clear validation errors dynamically as the user types
                 setInvalid(`f-${id === 'emailConfirm' ? 'email-confirm' : id}`, false);
             });
         });
@@ -1126,7 +1135,7 @@
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3500);
+            setTimeout(() => t.classList.remove('show'), 4000);
         }
 
         function setInvalid(fieldId, isInvalid) {
@@ -1140,20 +1149,32 @@
         }
 
         function validate() {
-            let ok = true;
-            const name = document.getElementById('name').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const emailConfirm = document.getElementById('emailConfirm').value.trim();
-            const city = document.getElementById('city').value.trim();
-            const consent = document.getElementById('consent').checked;
+            let firstInvalidId = null;
+            let failureReason = '';
 
-            // Name check
-            const nameOk = name.length > 0;
-            setInvalid('f-name', !nameOk);
-            if (!nameOk) ok = false;
+            const nameEl = document.getElementById('name');
+            const phoneEl = document.getElementById('phone');
+            const emailEl = document.getElementById('email');
+            const emailConfirmEl = document.getElementById('emailConfirm');
+            const cityEl = document.getElementById('city');
+            const consentEl = document.getElementById('consent');
 
-            // Phone check: strips spaces, dashes, +91, and leading 0s
+            const name = nameEl.value.trim();
+            const phone = phoneEl.value.trim();
+            const email = emailEl.value.trim().toLowerCase();
+            const emailConfirm = emailConfirmEl.value.trim().toLowerCase();
+            const city = cityEl.value.trim();
+            const consent = consentEl.checked;
+
+            // 1. Name Check
+            if (!name) {
+                setInvalid('f-name', true);
+                if (!firstInvalidId) { firstInvalidId = 'name'; failureReason = 'Full name is required'; }
+            } else {
+                setInvalid('f-name', false);
+            }
+
+            // 2. Phone Check (accepts +91, dashes, spaces, leading 0)
             let phoneDigits = phone.replace(/\D/g, '');
             if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
                 phoneDigits = phoneDigits.slice(2);
@@ -1161,35 +1182,64 @@
                 phoneDigits = phoneDigits.slice(1);
             }
             const phoneOk = phoneDigits.length === 10;
-            setInvalid('f-phone', !phoneOk);
-            if (!phoneOk) ok = false;
+            if (!phoneOk) {
+                setInvalid('f-phone', true);
+                if (!firstInvalidId) { firstInvalidId = 'phone'; failureReason = 'Phone must be a valid 10-digit number'; }
+            } else {
+                setInvalid('f-phone', false);
+            }
 
-            // City check
-            const cityOk = city.length > 0;
-            setInvalid('f-city', !cityOk);
-            if (!cityOk) ok = false;
+            // 3. Email Check
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailOk = email.length > 0 && emailPattern.test(email);
+            if (!emailOk) {
+                setInvalid('f-email', true);
+                if (!firstInvalidId) { firstInvalidId = 'email'; failureReason = 'Please enter a valid email address'; }
+            } else {
+                setInvalid('f-email', false);
+            }
 
-            // Email check
-            const emailOk = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-            setInvalid('f-email', !emailOk);
-            if (!emailOk) ok = false;
+            // 4. Confirm Email Check
+            const emailMatch = emailOk && (email === emailConfirm);
+            if (!emailMatch) {
+                setInvalid('f-email-confirm', true);
+                if (!firstInvalidId) { firstInvalidId = 'emailConfirm'; failureReason = 'Emails do not match'; }
+            } else {
+                setInvalid('f-email-confirm', false);
+            }
 
-            // Re-entered email check
-            const emailMatch = emailOk && email.toLowerCase() === emailConfirm.toLowerCase();
-            setInvalid('f-email-confirm', !emailMatch);
-            if (!emailMatch) ok = false;
+            // 5. City Check
+            if (!city) {
+                setInvalid('f-city', true);
+                if (!firstInvalidId) { firstInvalidId = 'city'; failureReason = 'City is required'; }
+            } else {
+                setInvalid('f-city', false);
+            }
 
-            // Consent check
-            setInvalid('f-consent', !consent);
-            if (!consent) ok = false;
+            // 6. Consent Checkbox Check
+            if (!consent) {
+                setInvalid('f-consent', true);
+                if (!firstInvalidId) { firstInvalidId = 'consent'; failureReason = 'Please check the consent box'; }
+            } else {
+                setInvalid('f-consent', false);
+            }
 
-            return ok;
+            if (firstInvalidId) {
+                showToast(`⚠️ ${failureReason}`);
+                const target = document.getElementById(firstInvalidId);
+                if (target) {
+                    target.focus();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
+
+            return true;
         }
 
         document.getElementById('eoiForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!validate()) { 
-                showToast('Please check the highlighted fields'); 
                 return; 
             }
             showReview();
@@ -1249,7 +1299,7 @@
 
         async function confirmSubmission() {
             if (!sb) {
-                showToast('⚠️ Demo Mode: Connecting to Supabase placeholder');
+                showToast('⚠️ Demo Mode: Form submitted locally (add Supabase keys to save online)');
                 setTimeout(() => {
                     const ref = generateReferenceId();
                     lastSubmittedPayload = currentPayload();
