@@ -441,15 +441,15 @@
                 </svg>
             </div>
             <h2 class="wordmark">Tengo Solar</h2>
-            <p class="sub">Staff sign-in — EOI dashboard</p>
+            <p class="sub">Administrator sign-in — EOI dashboard</p>
             <div class="login-error" id="loginError"></div>
             <form id="loginForm">
                 <div class="field">
-                    <label>Email</label>
+                    <label>Admin Email</label>
                     <input type="email" id="loginEmail" autocomplete="email" required>
                 </div>
                 <div class="field">
-                    <label>Password</label>
+                    <label>Admin Password</label>
                     <input type="password" id="loginPassword" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="btn" id="loginBtn">Sign in</button>
@@ -571,7 +571,7 @@
         </div>
     </div>
 
-    <!-- ══════════ EDIT & ASSIGN MODAL (PASSWORD PROTECTED) ══════════ -->
+    <!-- ══════════ EDIT & ASSIGN MODAL (ADMIN PASSWORD VERIFIED) ══════════ -->
     <div class="modal-overlay" id="editModalOverlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -585,7 +585,6 @@
                 <div class="drawer-section-card" style="background:rgba(6,182,212,0.06); border-color:rgba(6,182,212,0.25);">
                     <h4 style="color:var(--cyan);">👷 Field Engineering &amp; Installation Logistics</h4>
                     <div class="modal-grid">
-                        <!-- DYNAMIC ENGINEER SELECTION DROPDOWN -->
                         <div class="field">
                             <label>Select Assigned Engineer <span style="color:var(--cyan)">*</span></label>
                             <select id="editEngineerSelect">
@@ -699,14 +698,15 @@
                     <textarea id="editMessage" rows="2"></textarea>
                 </div>
 
+                <!-- Admin Security Check (Strictly verifies the logged-in Administrator) -->
                 <div class="pwd-verify-box">
                     <label style="font-size:0.8rem; font-weight:600; color:var(--sun-amber); display:block; margin-bottom:0.35rem;">
-                        🔒 Staff Password Verification Required
+                        🔒 Confirm with Admin Password (<span id="adminVerifPrompt">Your Password</span>)
                     </label>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">
-                        Enter your staff password to confirm and commit changes to the live database.
+                        Enter your active administrator password to authorize and commit changes to the live database.
                     </p>
-                    <input type="password" id="editAuthPassword" placeholder="Enter your password" required>
+                    <input type="password" id="editAuthPassword" placeholder="Enter administrator password" required>
                 </div>
 
                 <div style="display:flex; gap:0.75rem; margin-top:1.25rem;">
@@ -740,11 +740,16 @@
         let sb = null;
         let allRows = [];
         let dbEngineers = [];
-        let currentUser = null;
+        let currentAdminUser = null;
         let currentDrawerId = null;
 
+        // Custom storageKey prevents crossover with engineer sessions on the same browser
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    storageKey: 'tengo_admin_session'
+                }
+            });
         }
 
         function showToast(msg) {
@@ -830,17 +835,18 @@
 
         async function signOut() {
             if (sb) await sb.auth.signOut();
-            currentUser = null;
+            currentAdminUser = null;
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('loginForm').reset();
         }
 
         function enterDashboard(user) {
-            currentUser = user;
+            currentAdminUser = user;
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('adminVerifPrompt').textContent = user.email;
             populateEngineerDropdown();
             loadSubmissions();
         }
@@ -1008,7 +1014,7 @@
             showToast('✓ Status updated');
         });
 
-        // ── EDIT MODAL & PASSWORD CONFIRMATION ──
+        // ── EDIT MODAL & EXPLICIT ADMIN PASSWORD VERIFICATION ──
         function openEditModal(id) {
             const r = allRows.find(x => x.id === id);
             if (!r) return;
@@ -1061,22 +1067,32 @@
             const saveBtn = document.getElementById('saveEditBtn');
 
             if (!enteredPassword) {
-                showToast('⚠️ Please enter your password');
+                showToast('⚠️ Please enter your administrator password');
                 return;
             }
 
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Verifying password…';
+            // Always check against the active admin user session
+            const { data: { session: adminSession } } = await sb.auth.getSession();
+            if (!adminSession?.user) {
+                showToast('❌ Admin session expired. Please sign in again.');
+                signOut();
+                return;
+            }
 
+            const adminEmail = adminSession.user.email;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Verifying admin password…';
+
+            // Verify explicitly using admin's email and entered password
             const { error: authErr } = await sb.auth.signInWithPassword({
-                email: currentUser.email,
+                email: adminEmail,
                 password: enteredPassword
             });
 
             if (authErr) {
                 saveBtn.disabled = false;
                 saveBtn.textContent = 'Save Changes';
-                showToast('❌ Invalid password. Edit aborted.');
+                showToast(`❌ Invalid password for ${adminEmail}. Edit aborted.`);
                 return;
             }
 
