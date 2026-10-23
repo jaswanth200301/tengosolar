@@ -20,6 +20,7 @@
         --red:        #EF4444;
         --blue:       #3B82F6;
         --cyan:       #06B6D4;
+        --purple:     #C084FC;
         --text-body:  #C8DAE8;
         --text-muted: #6B8FA8;
         --text-dim:   #3E607E;
@@ -135,7 +136,7 @@
     header.top .brand span.amber { color: var(--sun-amber); }
     #userEmail { font-size: 0.78rem; color: var(--text-muted); margin-right: 0.9rem; }
 
-    .container { max-width: 1180px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+    .container { max-width: 1220px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
 
     /* KPI row */
     .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
@@ -182,6 +183,7 @@
         margin-left: 0.35rem;
     }
     .badge-tag.wa { background: rgba(34,197,94,0.15); color: var(--leaf); }
+    .badge-tag.eng { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
     .btn-export {
         background: rgba(245,166,35,0.1);
         border: 1px solid rgba(245,166,35,0.3);
@@ -216,7 +218,7 @@
     tbody td { padding: 0.85rem 1rem; font-size: 0.85rem; vertical-align: top; }
     td.name-cell { color: #fff; font-weight: 600; }
     td.sub { color: var(--text-muted); font-size: 0.78rem; }
-    .address-cell { max-width: 260px; line-height: 1.4; }
+    .address-cell { max-width: 250px; line-height: 1.4; }
 
     .status-pill {
         display: inline-block;
@@ -229,8 +231,8 @@
     }
     .status-pill.new { background: rgba(245,166,35,0.15); color: var(--sun-amber); }
     .status-pill.contacted { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .status-pill.quoted { background: rgba(168,85,247,0.15); color: var(--purple); }
     .status-pill.assigned_engineer { background: rgba(6,182,212,0.18); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
-    .status-pill.quoted { background: rgba(168,85,247,0.15); color: #c084fc; }
     .status-pill.converted { background: rgba(34,197,94,0.15); color: var(--leaf); }
     .status-pill.not_interested { background: rgba(239,68,68,0.15); color: var(--red); }
 
@@ -311,7 +313,7 @@
     .drawer {
         position: fixed;
         top: 0; right: 0; bottom: 0;
-        width: 440px;
+        width: 460px;
         max-width: calc(100vw - 2rem);
         background: linear-gradient(160deg, rgba(14,32,56,0.98), rgba(7,21,37,0.98));
         border-left: 1px solid var(--sky-rim);
@@ -325,19 +327,23 @@
     .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; float: right; }
     .drawer h3 { font-size: 1.25rem; margin: 0.5rem 0 0.2rem; }
     .drawer .drawer-sub { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.2rem; }
-    .drawer dl { display: grid; grid-template-columns: 110px 1fr; gap: 0.6rem 0.75rem; font-size: 0.85rem; margin-bottom: 1.4rem; }
+    .drawer dl { display: grid; grid-template-columns: 125px 1fr; gap: 0.6rem 0.75rem; font-size: 0.85rem; margin-bottom: 1.4rem; }
     .drawer dt { color: var(--text-muted); }
     .drawer dd { color: var(--text-body); word-break: break-word; }
-    .drawer .msg-box {
+    
+    .drawer-section-card {
         background: rgba(4,14,26,0.6);
         border: 1px solid var(--sky-rim);
         border-radius: var(--radius-sm);
-        padding: 0.75rem;
-        font-size: 0.85rem;
-        color: var(--text-body);
-        margin-bottom: 1.4rem;
-        min-height: 60px;
-        white-space: pre-wrap;
+        padding: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+    .drawer-section-card h4 {
+        font-size: 0.82rem;
+        color: var(--sun-amber);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.65rem;
     }
 
     /* ── MODALS ── */
@@ -357,7 +363,7 @@
         border: 1px solid var(--sky-rim);
         border-radius: var(--radius-xl);
         width: 100%;
-        max-width: 650px;
+        max-width: 680px;
         max-height: 90vh;
         overflow-y: auto;
         padding: 2rem;
@@ -396,7 +402,7 @@
     }
     @media (max-width: 768px) {
         .table-card { overflow-x: auto; }
-        table { min-width: 720px; }
+        table { min-width: 760px; }
         .modal-grid { grid-template-columns: 1fr; }
     }
 </style>
@@ -473,13 +479,13 @@
             </div>
 
             <div class="toolbar">
-                <input type="text" id="searchBox" placeholder="Search by name, phone, address, village, district, ref…">
+                <input type="text" id="searchBox" placeholder="Search by name, phone, address, village, district, engineer, ref…">
                 <select id="statusFilter">
                     <option value="">All statuses</option>
                     <option value="new">New</option>
                     <option value="contacted">Contacted</option>
-                    <option value="assigned_engineer">Assigned Engineer</option>
                     <option value="quoted">Quoted</option>
+                    <option value="assigned_engineer">Assigned Engineer</option>
                     <option value="converted">Converted</option>
                     <option value="not_interested">Not interested</option>
                 </select>
@@ -493,8 +499,8 @@
                             <th>Name</th>
                             <th>Contact</th>
                             <th>Installation Address</th>
-                            <th>Capacity / Size</th>
-                            <th>Submitted</th>
+                            <th>Engineer / Schedule</th>
+                            <th>Capacity</th>
                             <th>Status</th>
                             <th style="text-align:right;">Actions</th>
                         </tr>
@@ -516,17 +522,31 @@
         <button class="drawer-close" onclick="closeDrawer()">✕</button>
         <h3 id="dName">—</h3>
         <p class="drawer-sub" id="dSub">—</p>
-        <dl id="dList"></dl>
-        <div>
-            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;">Message</label>
-            <div class="msg-box" id="dMessage">—</div>
+        
+        <!-- Field Operations Quick Card -->
+        <div class="drawer-section-card">
+            <h4>⚡ Field Engineering &amp; Schedule</h4>
+            <div style="font-size:0.83rem; line-height:1.6;">
+                <div><span style="color:var(--text-muted);">Assigned Engineer:</span> <strong id="dEngineer" style="color:var(--cyan);">—</strong></div>
+                <div><span style="color:var(--text-muted);">Survey Date:</span> <span id="dSurveyDate">—</span></div>
+                <div><span style="color:var(--text-muted);">Installation Date:</span> <span id="dInstallDate">—</span></div>
+            </div>
         </div>
-        <div class="field">
-            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;">Status</label>
+
+        <dl id="dList"></dl>
+
+        <div class="drawer-section-card">
+            <h4 style="color:var(--text-muted); font-size:0.75rem;">Customer Message</h4>
+            <div id="dMessage" style="font-size:0.85rem; color:#fff; white-space:pre-wrap;">—</div>
+        </div>
+
+        <div class="field" style="margin-top:0.8rem;">
+            <label style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;">Pipeline Status</label>
             <select class="status-select" id="dStatus" style="width:100%;padding:0.55rem;"></select>
         </div>
-        <button class="btn-edit-full" onclick="openEditModal(currentDrawerId)">✏️ Edit Details</button>
-        <button class="btn-pdf-full" onclick="downloadSubmissionPDF(currentDrawerId)">📄 Download PDF</button>
+        
+        <button class="btn-edit-full" onclick="openEditModal(currentDrawerId)">✏️ Edit &amp; Assign Engineer</button>
+        <button class="btn-pdf-full" onclick="downloadSubmissionPDF(currentDrawerId)">📄 Download Work Order PDF</button>
     </div>
 
     <!-- ══════════ CSV DATE SELECTION MODAL ══════════ -->
@@ -537,7 +557,7 @@
                 <button class="drawer-close" onclick="closeCsvModal()">✕</button>
             </div>
             <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.2rem;">
-                Select the specific day you want to export. The CSV will include complete address details along with the calculated daily solar capacity.
+                Select the specific day you want to export. The CSV will include full address details, assigned engineers, schedule dates, and total daily solar capacity.
             </p>
             <div class="field">
                 <label>Select Date</label>
@@ -550,15 +570,44 @@
         </div>
     </div>
 
-    <!-- ══════════ EDIT MODAL (PASSWORD PROTECTED) ══════════ -->
+    <!-- ══════════ EDIT & ASSIGN MODAL (PASSWORD PROTECTED) ══════════ -->
     <div class="modal-overlay" id="editModalOverlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Edit Submission</h3>
+                <h3>Edit Submission &amp; Assign Engineer</h3>
                 <button class="drawer-close" onclick="closeEditModal()">✕</button>
             </div>
             <form id="editForm">
                 <input type="hidden" id="editId">
+
+                <!-- Section: Engineer Assignment & Scheduling -->
+                <div class="drawer-section-card" style="background:rgba(6,182,212,0.06); border-color:rgba(6,182,212,0.25);">
+                    <h4 style="color:var(--cyan);">👷 Engineering &amp; Installation Logistics</h4>
+                    <div class="modal-grid">
+                        <div class="field">
+                            <label>Assign Engineer / Installer</label>
+                            <input type="text" id="editAssignedEngineer" placeholder="e.g. Ramesh Babu (Guntur Team)">
+                        </div>
+                        <div class="field">
+                            <label>Site Survey Date</label>
+                            <input type="date" id="editSurveyDate">
+                        </div>
+                        <div class="field">
+                            <label>Scheduled Installation Date</label>
+                            <input type="date" id="editInstallDate">
+                        </div>
+                        <div class="field">
+                            <label>Pipeline Status</label>
+                            <select id="editStatusSelect"></select>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-bottom:0;">
+                        <label>Internal Operations / Engineering Notes</label>
+                        <input type="text" id="editInternalNotes" placeholder="e.g. 3-phase meter required; roof RCC structure confirmed">
+                    </div>
+                </div>
+
+                <!-- Section: Customer & Address Details -->
                 <div class="modal-grid">
                     <div class="field">
                         <label>Name</label>
@@ -587,7 +636,7 @@
                 </div>
 
                 <div class="field">
-                    <label>Full Street Address / Landmark / Pincode</label>
+                    <label>Complete Street Address, Door No., Landmark &amp; Pincode</label>
                     <textarea id="editAddress" rows="2" placeholder="D.No, Street, Landmark, Pincode"></textarea>
                 </div>
 
@@ -630,7 +679,7 @@
                         <input type="text" id="editBillRange">
                     </div>
                     <div class="field">
-                        <label>Preferred Time</label>
+                        <label>Preferred Contact Time</label>
                         <input type="text" id="editPreferredTime">
                     </div>
                 </div>
@@ -645,7 +694,7 @@
                         🔒 Staff Password Verification Required
                     </label>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem;">
-                        Enter your staff password to confirm and save these changes.
+                        Enter your staff password to confirm and commit changes to the live database.
                     </p>
                     <input type="password" id="editAuthPassword" placeholder="Enter your password" required>
                 </div>
@@ -667,8 +716,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Updated Status list with 'assigned_engineer'
-        const STATUSES = ['new', 'contacted', 'assigned_engineer', 'quoted', 'converted', 'not_interested'];
+        // "assigned_engineer" placed directly after "quoted"
+        const STATUSES = ['new', 'contacted', 'quoted', 'assigned_engineer', 'converted', 'not_interested'];
         const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
         const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
         
@@ -695,7 +744,6 @@
             setTimeout(() => t.classList.remove('show'), 3200);
         }
 
-        // Helper to get formatted full address across varying payloads
         function getFullAddress(r) {
             if (r.address && r.address.trim()) return r.address.trim();
             const parts = [r.village, r.district, r.state].filter(Boolean);
@@ -703,7 +751,6 @@
             return r.city || r.location || '—';
         }
 
-        // Helper to format status labels cleanly
         function statusLabel(s) {
             if (s === 'assigned_engineer') return 'Assigned Engineer';
             return (s || 'new').replace(/_/g, ' ');
@@ -807,7 +854,7 @@
                 if (statusF && r.status !== statusF) return false;
                 if (!q) return true;
                 const addr = getFullAddress(r).toLowerCase();
-                return [r.name, r.phone, r.city, r.state, r.district, r.village, r.address, r.reference_id, r.system_size, addr]
+                return [r.name, r.phone, r.city, r.state, r.district, r.village, r.address, r.assigned_engineer, r.reference_id, r.system_size, addr]
                     .some(v => (v || '').toLowerCase().includes(q));
             });
         }
@@ -838,11 +885,14 @@
                             <div>${escHtml(fullAddr)}</div>
                             ${locTag ? `<div class="sub" style="color:var(--sun-amber); font-size:0.72rem; margin-top:2px;">📍 ${locTag}</div>` : ''}
                         </td>
+                        <td>
+                            ${r.assigned_engineer ? `<span class="badge-tag eng">👷 ${escHtml(r.assigned_engineer)}</span>` : '<span class="sub">Unassigned</span>'}
+                            ${r.installation_date ? `<div class="sub" style="color:var(--sun-core); margin-top:2px;">📅 Install: ${new Date(r.installation_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>` : ''}
+                        </td>
                         <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
-                        <td class="sub">${r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</td>
                         <td><span class="status-pill ${escHtml(r.status || 'new')}">${escHtml(statusLabel(r.status))}</span></td>
                         <td style="text-align:right; white-space:nowrap;">
-                            <button class="btn-action-icon" title="Edit submission" onclick="event.stopPropagation(); openEditModal('${r.id}')">✏️</button>
+                            <button class="btn-action-icon" title="Edit & Assign" onclick="event.stopPropagation(); openEditModal('${r.id}')">✏️</button>
                             <button class="btn-action-icon" title="Download PDF" onclick="event.stopPropagation(); downloadSubmissionPDF('${r.id}')">📄</button>
                         </td>
                     </tr>
@@ -864,10 +914,14 @@
             document.getElementById('dName').textContent = r.name;
             document.getElementById('dSub').textContent = `${r.reference_id || '—'} · ${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`;
             
+            document.getElementById('dEngineer').textContent = r.assigned_engineer || 'Not Assigned';
+            document.getElementById('dSurveyDate').textContent = r.survey_date ? new Date(r.survey_date).toLocaleDateString('en-IN') : 'Not Scheduled';
+            document.getElementById('dInstallDate').textContent = r.installation_date ? new Date(r.installation_date).toLocaleDateString('en-IN') : 'Not Scheduled';
+
             document.getElementById('dList').innerHTML = `
                 <dt>Phone</dt><dd>${escHtml(r.phone)} ${r.is_whatsapp ? '<span class="badge-tag wa">WA</span>' : ''}</dd>
                 <dt>Email</dt><dd>${escHtml(r.email) || '—'}</dd>
-                <dt>Full Address</dt><dd style="color:#fff; font-weight:500;">${escHtml(fullAddr)}</dd>
+                <dt>Installation Address</dt><dd style="color:#fff; font-weight:500;">${escHtml(fullAddr)}</dd>
                 <dt>Village / Town</dt><dd>${escHtml(r.village || '—')}</dd>
                 <dt>District</dt><dd>${escHtml(r.district || '—')}</dd>
                 <dt>State</dt><dd>${escHtml(r.state || '—')}</dd>
@@ -876,7 +930,7 @@
                 <dt>System size</dt><dd>${SYSTEM_SIZE_LABELS[r.system_size] || 'Not sure'}</dd>
                 <dt>Bill range</dt><dd>${escHtml(r.bill_range) || '—'}</dd>
                 <dt>Best time</dt><dd>${escHtml(r.preferred_time) || 'Anytime'}</dd>
-                <dt>Consent</dt><dd>${r.consent ? 'Yes' : '—'}</dd>
+                <dt>Internal Notes</dt><dd style="color:var(--sun-amber);">${escHtml(r.internal_notes || '—')}</dd>
                 <dt>Submitted</dt><dd>${r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : '—'}</dd>
             `;
             document.getElementById('dMessage').textContent = r.message || 'No message left.';
@@ -912,6 +966,14 @@
             if (!r) return;
 
             document.getElementById('editId').value = r.id;
+            document.getElementById('editAssignedEngineer').value = r.assigned_engineer || '';
+            document.getElementById('editSurveyDate').value = r.survey_date || '';
+            document.getElementById('editInstallDate').value = r.installation_date || '';
+            document.getElementById('editInternalNotes').value = r.internal_notes || '';
+
+            const editStatusSel = document.getElementById('editStatusSelect');
+            editStatusSel.innerHTML = STATUSES.map(s => `<option value="${s}" ${s === (r.status||'new') ? 'selected' : ''}>${statusLabel(s)}</option>`).join('');
+
             document.getElementById('editName').value = r.name || '';
             document.getElementById('editPhone').value = r.phone || '';
             document.getElementById('editEmail').value = r.email || '';
@@ -976,7 +1038,12 @@
                 district: distVal,
                 village: vlgVal,
                 address: addrVal,
-                city: addrVal, // Keep synchronized for legacy table column
+                city: addrVal, // kept in sync for older schema
+                assigned_engineer: document.getElementById('editAssignedEngineer').value.trim() || null,
+                survey_date: document.getElementById('editSurveyDate').value || null,
+                installation_date: document.getElementById('editInstallDate').value || null,
+                internal_notes: document.getElementById('editInternalNotes').value.trim() || null,
+                status: document.getElementById('editStatusSelect').value,
                 property_type: document.getElementById('editPropertyType').value,
                 property_owned: document.getElementById('editPropertyOwned').value === 'true',
                 system_type: document.getElementById('editSystemType').value,
@@ -1056,6 +1123,10 @@
                 'Village / Town',
                 'District',
                 'State',
+                'Assigned Engineer',
+                'Survey Date',
+                'Installation Date',
+                'Internal Notes',
                 'Property Type',
                 'Ownership',
                 'System Type',
@@ -1086,6 +1157,10 @@
                     r.village || '',
                     r.district || '',
                     r.state || '',
+                    r.assigned_engineer || 'Unassigned',
+                    r.survey_date || '',
+                    r.installation_date || '',
+                    r.internal_notes || '',
                     r.property_type || '',
                     r.property_owned === false ? 'Rented' : 'Owned',
                     SYSTEM_TYPE_LABELS[r.system_type] || r.system_type || 'Not sure',
@@ -1107,7 +1182,7 @@
                 `"DAILY SUMMARY"`,
                 `"Date: ${targetDate}"`,
                 `"Total Submissions: ${matchedRows.length}"`,
-                '""', '""', '""', '""', '""', '""', '""', '""', '""', '""',
+                '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""',
                 `"TOTAL CAPACITY FOR THE DAY"`,
                 `"${dayTotalKW.toFixed(1)} kW"`,
                 '""', '""', '""', '""', '""', '""'
@@ -1143,7 +1218,7 @@
             doc.text('Tengo Solar', 40, 34);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10.5);
-            doc.text('Expression of Interest — Submission Record', 40, 52);
+            doc.text('Expression of Interest — Work Order Record', 40, 52);
 
             let y = 104;
             doc.setTextColor(20, 20, 20);
@@ -1170,14 +1245,14 @@
                 ['Email', r.email || '—'],
                 ['Installation Address', getFullAddress(r)],
                 ['Village / Town', r.village || '—'],
-                ['District', r.district || '—'],
-                ['State', r.state || '—'],
+                ['District / State', `${r.district || '—'}, ${r.state || '—'}`],
+                ['Assigned Engineer', r.assigned_engineer || 'Not Assigned'],
+                ['Survey Date', r.survey_date || 'Not Scheduled'],
+                ['Installation Date', r.installation_date || 'Not Scheduled'],
                 ['Property', `${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`],
                 ['System Type', SYSTEM_TYPE_LABELS[r.system_type] || 'Not sure yet'],
                 ['System Size', SYSTEM_SIZE_LABELS[r.system_size] || 'Not sure'],
                 ['Monthly Bill Range', r.bill_range || 'Not specified'],
-                ['Preferred Contact Time', r.preferred_time || 'Anytime'],
-                ['Consent to Contact', r.consent ? 'Yes' : 'Not recorded'],
                 ['Status', statusLabel(r.status)]
             ];
 
@@ -1193,9 +1268,24 @@
                 y += Math.max(22, valLines.length * 13 + 8);
             });
 
-            y += 6;
+            if (r.internal_notes) {
+                y += 6;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.text('Internal Operations Notes', 40, y);
+                y += 16;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9.5);
+                doc.setTextColor(180, 80, 0);
+                const noteLines = doc.splitTextToSize(r.internal_notes, pageWidth - 80);
+                doc.text(noteLines, 40, y);
+                y += noteLines.length * 14;
+            }
+
+            y += 8;
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
+            doc.setTextColor(20, 20, 20);
             doc.text('Customer Message', 40, y);
             y += 16;
             doc.setFont('helvetica', 'normal');
@@ -1205,7 +1295,7 @@
             doc.text(msgLines, 40, y);
 
             const safeName = (r.name || 'submission').trim().replace(/\s+/g, '-').toLowerCase();
-            doc.save(`tengo-solar-eoi-${safeName}-${refId}.pdf`);
+            doc.save(`tengo-solar-workorder-${safeName}-${refId}.pdf`);
         }
     </script>
 </body>
