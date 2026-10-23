@@ -528,6 +528,7 @@
             <h4>⚡ Field Engineering &amp; Schedule</h4>
             <div style="font-size:0.83rem; line-height:1.6;">
                 <div><span style="color:var(--text-muted);">Assigned Engineer:</span> <strong id="dEngineer" style="color:var(--cyan);">—</strong></div>
+                <div><span style="color:var(--text-muted);">Engineer Email:</span> <span id="dEngineerEmail" style="color:var(--text-body); font-family:monospace;">—</span></div>
                 <div><span style="color:var(--text-muted);">Survey Date:</span> <span id="dSurveyDate">—</span></div>
                 <div><span style="color:var(--text-muted);">Installation Date:</span> <span id="dInstallDate">—</span></div>
             </div>
@@ -585,8 +586,12 @@
                     <h4 style="color:var(--cyan);">👷 Engineering &amp; Installation Logistics</h4>
                     <div class="modal-grid">
                         <div class="field">
-                            <label>Assign Engineer / Installer</label>
-                            <input type="text" id="editAssignedEngineer" placeholder="e.g. Ramesh Babu (Guntur Team)">
+                            <label>Engineer Name</label>
+                            <input type="text" id="editAssignedEngineer" placeholder="e.g. Ramesh Babu">
+                        </div>
+                        <div class="field">
+                            <label>Engineer Login Email (for RLS dispatch) <span style="color:var(--cyan)">*</span></label>
+                            <input type="email" id="editAssignedEngineerEmail" placeholder="e.g. ramesh@tengosolar.com">
                         </div>
                         <div class="field">
                             <label>Site Survey Date</label>
@@ -596,14 +601,16 @@
                             <label>Scheduled Installation Date</label>
                             <input type="date" id="editInstallDate">
                         </div>
+                    </div>
+                    <div class="modal-grid">
                         <div class="field">
                             <label>Pipeline Status</label>
                             <select id="editStatusSelect"></select>
                         </div>
-                    </div>
-                    <div class="field" style="margin-bottom:0;">
-                        <label>Internal Operations / Engineering Notes</label>
-                        <input type="text" id="editInternalNotes" placeholder="e.g. 3-phase meter required; roof RCC structure confirmed">
+                        <div class="field">
+                            <label>Internal Operations / Engineering Notes</label>
+                            <input type="text" id="editInternalNotes" placeholder="e.g. 3-phase meter; roof RCC confirmed">
+                        </div>
                     </div>
                 </div>
 
@@ -716,7 +723,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // "assigned_engineer" placed directly after "quoted"
         const STATUSES = ['new', 'contacted', 'quoted', 'assigned_engineer', 'converted', 'not_interested'];
         const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
         const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
@@ -854,7 +860,7 @@
                 if (statusF && r.status !== statusF) return false;
                 if (!q) return true;
                 const addr = getFullAddress(r).toLowerCase();
-                return [r.name, r.phone, r.city, r.state, r.district, r.village, r.address, r.assigned_engineer, r.reference_id, r.system_size, addr]
+                return [r.name, r.phone, r.city, r.state, r.district, r.village, r.address, r.assigned_engineer, r.assigned_engineer_email, r.reference_id, r.system_size, addr]
                     .some(v => (v || '').toLowerCase().includes(q));
             });
         }
@@ -887,6 +893,7 @@
                         </td>
                         <td>
                             ${r.assigned_engineer ? `<span class="badge-tag eng">👷 ${escHtml(r.assigned_engineer)}</span>` : '<span class="sub">Unassigned</span>'}
+                            ${r.assigned_engineer_email ? `<div class="sub" style="font-size:0.7rem; color:var(--text-muted);">${escHtml(r.assigned_engineer_email)}</div>` : ''}
                             ${r.installation_date ? `<div class="sub" style="color:var(--sun-core); margin-top:2px;">📅 Install: ${new Date(r.installation_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>` : ''}
                         </td>
                         <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
@@ -915,6 +922,7 @@
             document.getElementById('dSub').textContent = `${r.reference_id || '—'} · ${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`;
             
             document.getElementById('dEngineer').textContent = r.assigned_engineer || 'Not Assigned';
+            document.getElementById('dEngineerEmail').textContent = r.assigned_engineer_email || 'No email assigned';
             document.getElementById('dSurveyDate').textContent = r.survey_date ? new Date(r.survey_date).toLocaleDateString('en-IN') : 'Not Scheduled';
             document.getElementById('dInstallDate').textContent = r.installation_date ? new Date(r.installation_date).toLocaleDateString('en-IN') : 'Not Scheduled';
 
@@ -967,6 +975,7 @@
 
             document.getElementById('editId').value = r.id;
             document.getElementById('editAssignedEngineer').value = r.assigned_engineer || '';
+            document.getElementById('editAssignedEngineerEmail').value = r.assigned_engineer_email || '';
             document.getElementById('editSurveyDate').value = r.survey_date || '';
             document.getElementById('editInstallDate').value = r.installation_date || '';
             document.getElementById('editInternalNotes').value = r.internal_notes || '';
@@ -1029,6 +1038,7 @@
             const distVal = document.getElementById('editDistrict').value.trim();
             const vlgVal = document.getElementById('editVillage').value.trim();
             const addrVal = document.getElementById('editAddress').value.trim();
+            const engEmailVal = document.getElementById('editAssignedEngineerEmail').value.trim().toLowerCase();
 
             const payload = {
                 name: document.getElementById('editName').value.trim(),
@@ -1038,8 +1048,9 @@
                 district: distVal,
                 village: vlgVal,
                 address: addrVal,
-                city: addrVal, // kept in sync for older schema
+                city: addrVal,
                 assigned_engineer: document.getElementById('editAssignedEngineer').value.trim() || null,
+                assigned_engineer_email: engEmailVal || null,
                 survey_date: document.getElementById('editSurveyDate').value || null,
                 installation_date: document.getElementById('editInstallDate').value || null,
                 internal_notes: document.getElementById('editInternalNotes').value.trim() || null,
@@ -1076,7 +1087,7 @@
             renderTable();
             renderKPIs();
             if (currentDrawerId === id) openDrawer(id);
-            showToast('✓ Submission updated successfully');
+            showToast('✓ Lead updated & dispatched successfully');
         });
 
         // ── DATE-WISE CSV EXPORT ──
@@ -1124,6 +1135,7 @@
                 'District',
                 'State',
                 'Assigned Engineer',
+                'Engineer Email',
                 'Survey Date',
                 'Installation Date',
                 'Internal Notes',
@@ -1158,6 +1170,7 @@
                     r.district || '',
                     r.state || '',
                     r.assigned_engineer || 'Unassigned',
+                    r.assigned_engineer_email || '',
                     r.survey_date || '',
                     r.installation_date || '',
                     r.internal_notes || '',
@@ -1182,7 +1195,7 @@
                 `"DAILY SUMMARY"`,
                 `"Date: ${targetDate}"`,
                 `"Total Submissions: ${matchedRows.length}"`,
-                '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""',
+                '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""',
                 `"TOTAL CAPACITY FOR THE DAY"`,
                 `"${dayTotalKW.toFixed(1)} kW"`,
                 '""', '""', '""', '""', '""', '""'
@@ -1246,7 +1259,7 @@
                 ['Installation Address', getFullAddress(r)],
                 ['Village / Town', r.village || '—'],
                 ['District / State', `${r.district || '—'}, ${r.state || '—'}`],
-                ['Assigned Engineer', r.assigned_engineer || 'Not Assigned'],
+                ['Assigned Engineer', `${r.assigned_engineer || 'Not Assigned'}${r.assigned_engineer_email ? ' (' + r.assigned_engineer_email + ')' : ''}`],
                 ['Survey Date', r.survey_date || 'Not Scheduled'],
                 ['Installation Date', r.installation_date || 'Not Scheduled'],
                 ['Property', `${r.property_type === 'business' ? 'Business' : 'Home'} · ${r.property_owned === false ? 'Rented' : 'Owned'}`],
