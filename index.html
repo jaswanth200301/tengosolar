@@ -213,6 +213,10 @@
             background-color: theme("colors.sky-deep");
             color: #ffffff;
         }
+        .form-select:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
 
         .progress-bar-container {
             background-color: rgba(255, 255, 255, 0.1);
@@ -870,12 +874,43 @@
 <input autocomplete="off" class="form-input" id="emailConfirm" placeholder="type it again" type="email">
 <div class="field-error">Doesn't match the email above.</div>
 </div>
-<div class="field" id="f-city">
-<label class="block text-[0.85rem] font-semibold text-white mb-[0.5rem]">City <span class="text-sun-core">*</span></label>
-<p class="text-text-body text-sm max-w-[460px] mx-auto md:mx-0 mb-3 text-shadow-subtle">Current operation: Guntur, Krishna Districts</p>
-<input autocomplete="address-level2" class="form-input" id="city" placeholder="eg. Amaravati, Andhra Pradesh" type="text">
-<div class="field-error">Please enter your city.</div>
+
+<!-- Cascading Location Pickers: State, District, Village -->
+<div class="border border-white/10 p-4 rounded-xl bg-black/15">
+    <div class="flex items-center justify-between mb-3">
+        <label class="block text-[0.85rem] font-semibold text-white">Location Details <span class="text-sun-core">*</span></label>
+        <span class="text-xs text-sun-core/90 bg-sun-core/10 px-2 py-0.5 rounded border border-sun-core/20">Operational in Guntur &amp; Krishna</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- 1. State -->
+        <div class="field" id="f-state">
+            <label class="block text-[0.78rem] text-text-muted mb-1">State <span class="text-sun-core">*</span></label>
+            <select class="form-select" id="stateSelect">
+                <option value="">Select State</option>
+                <option value="Andhra Pradesh" selected>Andhra Pradesh</option>
+                <option value="Telangana">Telangana</option>
+            </select>
+            <div class="field-error">Select state</div>
+        </div>
+        <!-- 2. District -->
+        <div class="field" id="f-district">
+            <label class="block text-[0.78rem] text-text-muted mb-1">District <span class="text-sun-core">*</span></label>
+            <select class="form-select" id="districtSelect">
+                <option value="">Select District</option>
+            </select>
+            <div class="field-error">Select district</div>
+        </div>
+        <!-- 3. Village / Town -->
+        <div class="field" id="f-village">
+            <label class="block text-[0.78rem] text-text-muted mb-1">Village / Town <span class="text-sun-core">*</span></label>
+            <select class="form-select" id="villageSelect" disabled>
+                <option value="">Select Village/Town</option>
+            </select>
+            <div class="field-error">Select village</div>
+        </div>
+    </div>
 </div>
+
 <div class="field">
 <label class="block text-[0.85rem] font-semibold text-white mb-[0.5rem]">Property type</label>
 <div class="seg">
@@ -992,6 +1027,85 @@
 
 <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        /* Location Hierarchical Data */
+        const LOCATION_DATA = {
+            "Andhra Pradesh": {
+                "Guntur": ["Amaravati", "Guntur City", "Mangalagiri", "Tenali", "Tadikonda", "Thullur", "Medikonduru", "Pedakakani", "Other"],
+                "Krishna": ["Vijayawada", "Machilipatnam", "Gudivada", "Vuyyuru", "Kankipadu", "Gannavaram", "Pamarru", "Penamaluru", "Other"],
+                "NTR": ["Vijayawada Urban", "Ibrahimpatnam", "Nandigama", "Jaggayyapeta", "Tiruvuru", "Mylavaram", "Other"],
+                "Palnadu": ["Narasaraopet", "Sattenapalle", "Chilakaluripet", "Piduguralla", "Vinukonda", "Other"],
+                "Bapatla": ["Bapatla", "Chirala", "Repalle", "Vemuru", "Other"],
+                "Prakasam": ["Ongole", "Markapur", "Kandukur", "Giddalur", "Other"],
+                "Visakhapatnam": ["Visakhapatnam City", "Gajuwaka", "Anandapuram", "Pendurthi", "Other"],
+                "Other AP District": ["Other Village/Town"]
+            },
+            "Telangana": {
+                "Hyderabad": ["Gachibowli", "Madhapur", "Kukatpally", "Jubilee Hills", "Secunderabad", "Other"],
+                "Rangareddy": ["Shamshabad", "Rajendranagar", "Serilingampally", "Other"],
+                "Medchal-Malkajgiri": ["Medchal", "Alwal", "Kompally", "Other"],
+                "Other Telangana District": ["Other Village/Town"]
+            }
+        };
+
+        const stateSelect = document.getElementById('stateSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const villageSelect = document.getElementById('villageSelect');
+
+        function populateDistricts() {
+            const state = stateSelect.value;
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            villageSelect.innerHTML = '<option value="">Select Village/Town</option>';
+            villageSelect.disabled = true;
+
+            if (state && LOCATION_DATA[state]) {
+                districtSelect.disabled = false;
+                Object.keys(LOCATION_DATA[state]).forEach(dist => {
+                    const opt = document.createElement('option');
+                    opt.value = dist;
+                    opt.textContent = dist;
+                    districtSelect.appendChild(opt);
+                });
+            } else {
+                districtSelect.disabled = true;
+            }
+            updateProgress();
+        }
+
+        function populateVillages() {
+            const state = stateSelect.value;
+            const dist = districtSelect.value;
+            villageSelect.innerHTML = '<option value="">Select Village/Town</option>';
+
+            if (state && dist && LOCATION_DATA[state] && LOCATION_DATA[state][dist]) {
+                villageSelect.disabled = false;
+                LOCATION_DATA[state][dist].forEach(vlg => {
+                    const opt = document.createElement('option');
+                    opt.value = vlg;
+                    opt.textContent = vlg;
+                    villageSelect.appendChild(opt);
+                });
+            } else {
+                villageSelect.disabled = true;
+            }
+            updateProgress();
+        }
+
+        stateSelect.addEventListener('change', () => {
+            populateDistricts();
+            setInvalid('f-state', false);
+        });
+        districtSelect.addEventListener('change', () => {
+            populateVillages();
+            setInvalid('f-district', false);
+        });
+        villageSelect.addEventListener('change', () => {
+            updateProgress();
+            setInvalid('f-village', false);
+        });
+
+        // Initialize defaults
+        populateDistricts();
 
         /* Video Controls */
         const heroVideo = document.getElementById('heroVideo');
@@ -1111,15 +1225,22 @@
             });
         });
 
-        const requiredIds = ['name', 'phone', 'email', 'emailConfirm', 'city'];
+        const textInputIds = ['name', 'phone', 'email', 'emailConfirm'];
         function updateProgress() {
-            const filled = ['name', 'phone', 'email', 'city'].filter(id => document.getElementById(id).value.trim().length > 0).length;
-            const consentDone = document.getElementById('consent').checked ? 1 : 0;
+            let score = 0;
+            if (document.getElementById('name').value.trim()) score++;
+            if (document.getElementById('phone').value.trim()) score++;
+            if (document.getElementById('email').value.trim()) score++;
+            if (stateSelect.value) score += 0.33;
+            if (districtSelect.value) score += 0.33;
+            if (villageSelect.value) score += 0.34;
+            if (document.getElementById('consent').checked) score++;
+
             const total = 5;
-            document.getElementById('progressFill').style.width = `${((filled + consentDone) / total) * 100}%`;
+            document.getElementById('progressFill').style.width = `${Math.min(100, (score / total) * 100)}%`;
         }
 
-        requiredIds.forEach(id => {
+        textInputIds.forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener('input', () => {
                 updateProgress();
@@ -1156,14 +1277,12 @@
             const phoneEl = document.getElementById('phone');
             const emailEl = document.getElementById('email');
             const emailConfirmEl = document.getElementById('emailConfirm');
-            const cityEl = document.getElementById('city');
             const consentEl = document.getElementById('consent');
 
             const name = nameEl.value.trim();
             const phone = phoneEl.value.trim();
             const email = emailEl.value.trim().toLowerCase();
             const emailConfirm = emailConfirmEl.value.trim().toLowerCase();
-            const city = cityEl.value.trim();
             const consent = consentEl.checked;
 
             // 1. Name Check
@@ -1208,12 +1327,26 @@
                 setInvalid('f-email-confirm', false);
             }
 
-            // 5. City Check
-            if (!city) {
-                setInvalid('f-city', true);
-                if (!firstInvalidId) { firstInvalidId = 'city'; failureReason = 'City is required'; }
+            // 5. Location Checks (State, District, Village)
+            if (!stateSelect.value) {
+                setInvalid('f-state', true);
+                if (!firstInvalidId) { firstInvalidId = 'stateSelect'; failureReason = 'Please select your state'; }
             } else {
-                setInvalid('f-city', false);
+                setInvalid('f-state', false);
+            }
+
+            if (!districtSelect.value) {
+                setInvalid('f-district', true);
+                if (!firstInvalidId) { firstInvalidId = 'districtSelect'; failureReason = 'Please select your district'; }
+            } else {
+                setInvalid('f-district', false);
+            }
+
+            if (!villageSelect.value) {
+                setInvalid('f-village', true);
+                if (!firstInvalidId) { firstInvalidId = 'villageSelect'; failureReason = 'Please select your village or town'; }
+            } else {
+                setInvalid('f-village', false);
             }
 
             // 6. Consent Checkbox Check
@@ -1256,7 +1389,10 @@
                 phone: document.getElementById('phone').value.trim(),
                 is_whatsapp: document.getElementById('isWhatsapp').checked,
                 email: document.getElementById('email').value.trim(),
-                city: document.getElementById('city').value.trim(),
+                state: stateSelect.value,
+                district: districtSelect.value,
+                village: villageSelect.value,
+                location: `${villageSelect.value}, ${districtSelect.value}, ${stateSelect.value}`,
                 property_type: propertyType,
                 property_owned: propertyOwned,
                 system_type: document.getElementById('systemType').value,
@@ -1275,7 +1411,7 @@
                 <dt class="text-text-muted">Name</dt><dd class="text-white break-words">${p.name}</dd>
                 <dt class="text-text-muted">Phone</dt><dd class="text-white break-words">${p.phone}${p.is_whatsapp ? ' (WhatsApp)' : ''}</dd>
                 <dt class="text-text-muted">Email</dt><dd class="text-white break-words">${p.email}</dd>
-                <dt class="text-text-muted">City</dt><dd class="text-white break-words">${p.city}</dd>
+                <dt class="text-text-muted">Location</dt><dd class="text-white break-words">${p.village}, ${p.district}, ${p.state}</dd>
                 <dt class="text-text-muted">Property</dt><dd class="text-white break-words">${p.property_type === 'business' ? 'Business' : 'Home'} · ${p.property_owned ? 'Owned' : 'Rented'}</dd>
                 <dt class="text-text-muted">System type</dt><dd class="text-white break-words">${SYSTEM_TYPE_LABELS[p.system_type]}</dd>
                 <dt class="text-text-muted">System size</dt><dd class="text-white break-words">${SYSTEM_SIZE_LABELS[p.system_size || '']}</dd>
@@ -1398,7 +1534,9 @@
             const fields = [
                 ['Phone', `${p.phone}${p.is_whatsapp ? '  (WhatsApp)' : ''}`],
                 ['Email', p.email],
-                ['City', p.city],
+                ['State', p.state],
+                ['District', p.district],
+                ['Village / Town', p.village],
                 ['Property', `${p.property_type === 'business' ? 'Business' : 'Home'} · ${p.property_owned ? 'Owned' : 'Rented'}`],
                 ['System Type', SYSTEM_TYPE_LABELS[p.system_type]],
                 ['System Size', SYSTEM_SIZE_LABELS[p.system_size || '']],
@@ -1448,6 +1586,8 @@
             document.querySelectorAll('#ownershipSeg .seg-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('#ownershipSeg .seg-btn[data-val="own"]').classList.add('active');
             propertyOwned = true;
+
+            populateDistricts();
 
             lastSubmittedPayload = null;
             lastSubmittedRef = null;
