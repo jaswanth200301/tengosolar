@@ -585,11 +585,11 @@
                 <div class="drawer-section-card" style="background:rgba(6,182,212,0.06); border-color:rgba(6,182,212,0.25);">
                     <h4 style="color:var(--cyan);">👷 Field Engineering &amp; Installation Logistics</h4>
                     <div class="modal-grid">
-                        <!-- PRESET ENGINEER SELECTION DROPDOWN -->
+                        <!-- DYNAMIC ENGINEER SELECTION DROPDOWN -->
                         <div class="field">
                             <label>Select Assigned Engineer <span style="color:var(--cyan)">*</span></label>
                             <select id="editEngineerSelect">
-                                <!-- Options dynamically injected from ENGINEER_ROSTER -->
+                                <option value="">Loading engineers from database...</option>
                             </select>
                         </div>
                         <div class="field">
@@ -726,15 +726,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // ── PRESET ENGINEER DIRECTORY ──
-        // Add, remove, or modify your field staff here
-        const ENGINEER_ROSTER = [
-            { id: '', name: 'Unassigned', email: '', region: 'None' },
-            { id: 'eng_1', name: 'Ramesh Babu', email: 'ramesh@tengosolar.com', region: 'Guntur / Amaravati' },
-            { id: 'eng_2', name: 'Suresh Kumar', email: 'suresh@tengosolar.com', region: 'Vijayawada / Krishna' },
-            { id: 'eng_3', name: 'Venkatesh Rao', email: 'venkatesh@tengosolar.com', region: 'Mangalagiri / Tenali' }
-        ];
-
         const STATUSES = ['new', 'contacted', 'quoted', 'assigned_engineer', 'converted', 'not_interested'];
         const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
         const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
@@ -748,6 +739,7 @@
 
         let sb = null;
         let allRows = [];
+        let dbEngineers = [];
         let currentUser = null;
         let currentDrawerId = null;
 
@@ -774,22 +766,35 @@
             return (s || 'new').replace(/_/g, ' ');
         }
 
-        // Initialize the Engineer Dropdown
+        // ── DYNAMIC ENGINEER TABLE POPULATION ──
         const engSelect = document.getElementById('editEngineerSelect');
         const engEmailInput = document.getElementById('editAssignedEngineerEmail');
 
-        function populateEngineerDropdown() {
-            engSelect.innerHTML = ENGINEER_ROSTER.map(e => `
-                <option value="${e.email}" data-name="${e.name}">${e.name} ${e.region !== 'None' ? '— ' + e.region : ''}</option>
-            `).join('');
-        }
-        populateEngineerDropdown();
+        async function populateEngineerDropdown() {
+            if (!sb) return;
+            const { data, error } = await sb
+                .from('engineers')
+                .select('name, email, region')
+                .eq('active', true)
+                .order('name', { ascending: true });
 
-        // Auto-fill read-only email box when dropdown changes
+            if (error) {
+                console.error('Error fetching engineers table:', error);
+                engSelect.innerHTML = '<option value="">Failed to load engineers</option>';
+                return;
+            }
+
+            dbEngineers = data || [];
+            let options = '<option value="" data-name="">Unassigned</option>';
+            dbEngineers.forEach(e => {
+                options += `<option value="${e.email}" data-name="${e.name}">${e.name} (${e.region || 'Active'})</option>`;
+            });
+            engSelect.innerHTML = options;
+        }
+
         engSelect.addEventListener('change', () => {
             engEmailInput.value = engSelect.value || '';
             const statusSelect = document.getElementById('editStatusSelect');
-            // If an engineer is picked and status is still new/contacted, automatically nudge to 'assigned_engineer'
             if (engSelect.value && ['new', 'contacted', 'quoted'].includes(statusSelect.value)) {
                 statusSelect.value = 'assigned_engineer';
             }
@@ -836,6 +841,7 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('userEmail').textContent = user.email;
+            populateEngineerDropdown();
             loadSubmissions();
         }
 
@@ -1009,15 +1015,10 @@
 
             document.getElementById('editId').value = r.id;
 
-            // Sync engineer dropdown
-            const matchingEng = ENGINEER_ROSTER.find(e => 
-                (r.assigned_engineer_email && e.email === r.assigned_engineer_email) || 
-                (r.assigned_engineer && e.name === r.assigned_engineer)
-            );
-
-            if (matchingEng) {
-                engSelect.value = matchingEng.email;
-                engEmailInput.value = matchingEng.email;
+            // Match against database engineers loaded in memory
+            if (r.assigned_engineer_email) {
+                engSelect.value = r.assigned_engineer_email;
+                engEmailInput.value = r.assigned_engineer_email;
             } else {
                 engSelect.value = '';
                 engEmailInput.value = '';
