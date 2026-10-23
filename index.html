@@ -875,12 +875,14 @@
 <div class="field-error">Doesn't match the email above.</div>
 </div>
 
-<!-- Cascading Location Pickers: State, District, Village -->
-<div class="border border-white/10 p-4 rounded-xl bg-black/15">
-    <div class="flex items-center justify-between mb-3">
-        <label class="block text-[0.85rem] font-semibold text-white">Location Details <span class="text-sun-core">*</span></label>
-        <span class="text-xs text-sun-core/90 bg-sun-core/10 px-2 py-0.5 rounded border border-sun-core/20">Operational in Guntur &amp; Krishna</span>
+<!-- Location & Full Address Block -->
+<div class="border border-white/10 p-4 rounded-xl bg-black/15 flex flex-col gap-3">
+    <div class="flex items-center justify-between mb-1">
+        <label class="block text-[0.85rem] font-semibold text-white">Installation Address <span class="text-sun-core">*</span></label>
+        <span class="text-xs text-sun-core/90 bg-sun-core/10 px-2 py-0.5 rounded border border-sun-core/20">Active: Guntur &amp; Krishna</span>
     </div>
+
+    <!-- Dropdowns: State, District, Village -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <!-- 1. State -->
         <div class="field" id="f-state">
@@ -908,6 +910,13 @@
             </select>
             <div class="field-error">Select village</div>
         </div>
+    </div>
+
+    <!-- Full Address Box (Street, House No, Landmark, Pincode) -->
+    <div class="field mt-1" id="f-street-address">
+        <label class="block text-[0.78rem] text-text-muted mb-1">Street Address, Door No., Landmark &amp; Pincode <span class="text-sun-core">*</span></label>
+        <input autocomplete="street-address" class="form-input" id="streetAddress" placeholder="e.g. D.No 4-12, Near SBI Bank, Main Road, Pincode 522002" type="text">
+        <div class="field-error">Please enter your complete street address &amp; pincode.</div>
     </div>
 </div>
 
@@ -1051,6 +1060,7 @@
         const stateSelect = document.getElementById('stateSelect');
         const districtSelect = document.getElementById('districtSelect');
         const villageSelect = document.getElementById('villageSelect');
+        const streetAddressInput = document.getElementById('streetAddress');
 
         function populateDistricts() {
             const state = stateSelect.value;
@@ -1102,6 +1112,10 @@
         villageSelect.addEventListener('change', () => {
             updateProgress();
             setInvalid('f-village', false);
+        });
+        streetAddressInput.addEventListener('input', () => {
+            updateProgress();
+            setInvalid('f-street-address', false);
         });
 
         // Initialize defaults
@@ -1231,9 +1245,10 @@
             if (document.getElementById('name').value.trim()) score++;
             if (document.getElementById('phone').value.trim()) score++;
             if (document.getElementById('email').value.trim()) score++;
-            if (stateSelect.value) score += 0.33;
-            if (districtSelect.value) score += 0.33;
-            if (villageSelect.value) score += 0.34;
+            if (stateSelect.value) score += 0.25;
+            if (districtSelect.value) score += 0.25;
+            if (villageSelect.value) score += 0.25;
+            if (streetAddressInput.value.trim()) score += 0.25;
             if (document.getElementById('consent').checked) score++;
 
             const total = 5;
@@ -1283,6 +1298,7 @@
             const phone = phoneEl.value.trim();
             const email = emailEl.value.trim().toLowerCase();
             const emailConfirm = emailConfirmEl.value.trim().toLowerCase();
+            const streetAddress = streetAddressInput.value.trim();
             const consent = consentEl.checked;
 
             // 1. Name Check
@@ -1327,7 +1343,7 @@
                 setInvalid('f-email-confirm', false);
             }
 
-            // 5. Location Checks (State, District, Village)
+            // 5. Location Checks (State, District, Village, Full Street Address)
             if (!stateSelect.value) {
                 setInvalid('f-state', true);
                 if (!firstInvalidId) { firstInvalidId = 'stateSelect'; failureReason = 'Please select your state'; }
@@ -1347,6 +1363,13 @@
                 if (!firstInvalidId) { firstInvalidId = 'villageSelect'; failureReason = 'Please select your village or town'; }
             } else {
                 setInvalid('f-village', false);
+            }
+
+            if (!streetAddress) {
+                setInvalid('f-street-address', true);
+                if (!firstInvalidId) { firstInvalidId = 'streetAddress'; failureReason = 'Please enter your street address and pincode'; }
+            } else {
+                setInvalid('f-street-address', false);
             }
 
             // 6. Consent Checkbox Check
@@ -1384,15 +1407,22 @@
         const TIME_LABELS = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', '': 'Anytime' };
 
         function currentPayload() {
+            const street = streetAddressInput.value.trim();
+            const village = villageSelect.value;
+            const district = districtSelect.value;
+            const state = stateSelect.value;
+            
+            // Full readable address format
+            const combinedAddress = `${street}, ${village}, ${district}, ${state}`;
+
             return {
                 name: document.getElementById('name').value.trim(),
                 phone: document.getElementById('phone').value.trim(),
                 is_whatsapp: document.getElementById('isWhatsapp').checked,
                 email: document.getElementById('email').value.trim(),
-                state: stateSelect.value,
-                district: districtSelect.value,
-                village: villageSelect.value,
-                location: `${villageSelect.value}, ${districtSelect.value}, ${stateSelect.value}`,
+                // Saved both as 'address' and 'city' so older and newer admin dashboards can see it
+                address: combinedAddress,
+                city: `${village}, ${district}, ${state}`,
                 property_type: propertyType,
                 property_owned: propertyOwned,
                 system_type: document.getElementById('systemType').value,
@@ -1411,7 +1441,7 @@
                 <dt class="text-text-muted">Name</dt><dd class="text-white break-words">${p.name}</dd>
                 <dt class="text-text-muted">Phone</dt><dd class="text-white break-words">${p.phone}${p.is_whatsapp ? ' (WhatsApp)' : ''}</dd>
                 <dt class="text-text-muted">Email</dt><dd class="text-white break-words">${p.email}</dd>
-                <dt class="text-text-muted">Location</dt><dd class="text-white break-words">${p.village}, ${p.district}, ${p.state}</dd>
+                <dt class="text-text-muted">Address</dt><dd class="text-white break-words">${p.address}</dd>
                 <dt class="text-text-muted">Property</dt><dd class="text-white break-words">${p.property_type === 'business' ? 'Business' : 'Home'} · ${p.property_owned ? 'Owned' : 'Rented'}</dd>
                 <dt class="text-text-muted">System type</dt><dd class="text-white break-words">${SYSTEM_TYPE_LABELS[p.system_type]}</dd>
                 <dt class="text-text-muted">System size</dt><dd class="text-white break-words">${SYSTEM_SIZE_LABELS[p.system_size || '']}</dd>
@@ -1534,9 +1564,7 @@
             const fields = [
                 ['Phone', `${p.phone}${p.is_whatsapp ? '  (WhatsApp)' : ''}`],
                 ['Email', p.email],
-                ['State', p.state],
-                ['District', p.district],
-                ['Village / Town', p.village],
+                ['Installation Address', p.address],
                 ['Property', `${p.property_type === 'business' ? 'Business' : 'Home'} · ${p.property_owned ? 'Owned' : 'Rented'}`],
                 ['System Type', SYSTEM_TYPE_LABELS[p.system_type]],
                 ['System Size', SYSTEM_SIZE_LABELS[p.system_size || '']],
@@ -1549,11 +1577,14 @@
                 doc.setFontSize(10);
                 doc.text(label, 40, y);
                 doc.setFont('helvetica', 'normal');
-                doc.text(String(val), 210, y);
-                y += 22;
+                
+                // Allow long addresses to wrap properly in PDF
+                const valLines = doc.splitTextToSize(String(val), pageWidth - 250);
+                doc.text(valLines, 210, y);
+                y += Math.max(22, valLines.length * 13 + 8);
             });
 
-            y += 12;
+            y += 6;
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
             doc.text('Message', 40, y);
