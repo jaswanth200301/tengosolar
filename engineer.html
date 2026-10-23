@@ -40,11 +40,11 @@
         background: rgba(4,14,26,0.95);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--sky-rim);
-        padding: 0.9rem 1.1rem;
+        padding: 0.85rem 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
         z-index: 30;
     }
-    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
+    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.45rem; }
     .badge-eng { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 999px; }
 
     .container { max-width: 600px; margin: 0 auto; padding: 1rem; }
@@ -122,7 +122,8 @@
             <span>Tengo Solar</span>
             <span class="badge-eng">FIELD APP</span>
         </div>
-        <div id="userNav" style="display:none; align-items:center; gap:0.5rem;">
+        <div id="userNav" style="display:none; align-items:center; gap:0.6rem;">
+            <span id="activeEngineerEmail" style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;"></span>
             <button class="btn-ghost" onclick="signOut()">Logout</button>
         </div>
     </header>
@@ -132,11 +133,11 @@
         <div id="loginScreen">
             <div class="login-box">
                 <h2 style="margin-bottom:0.3rem;">Technician Portal</h2>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">Log in to access your daily rooftop solar work orders.</p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">Sign in with your staff email to view only your assigned installations.</p>
                 <form id="loginForm">
                     <div class="field">
                         <label>Staff Email</label>
-                        <input type="email" id="loginEmail" required placeholder="engineer@tengosolar.com">
+                        <input type="email" id="loginEmail" required placeholder="ramesh@tengosolar.com">
                     </div>
                     <div class="field">
                         <label>Password</label>
@@ -151,8 +152,8 @@
         <div id="appScreen" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin:0.8rem 0 1.1rem;">
                 <div>
-                    <h3 style="font-size:1.15rem;">Assigned Work Orders</h3>
-                    <p style="font-size:0.75rem; color:var(--text-muted);">Real-time dispatch from Admin Desk</p>
+                    <h3 style="font-size:1.15rem;">My Active Work Orders</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted);" id="jobCountSub">Filtered to your login</p>
                 </div>
                 <button class="btn-ghost" onclick="loadAssignedJobs()">🔄 Refresh</button>
             </div>
@@ -160,7 +161,8 @@
             <div id="jobsList"></div>
             <div id="emptyJobs" style="display:none; text-align:center; padding:3rem 1rem; color:var(--text-muted);">
                 <div style="font-size:2rem; margin-bottom:0.5rem;">☀️</div>
-                No pending work orders assigned to you right now.
+                <div>No pending work orders assigned to your account.</div>
+                <div style="font-size:0.75rem; margin-top:0.3rem; color:var(--text-dim);">Ask admin desk to assign leads to your email.</div>
             </div>
         </div>
     </div>
@@ -231,7 +233,7 @@
                     <label>Update Lead Pipeline Status</label>
                     <select id="sStatusUpdate">
                         <option value="assigned_engineer">Survey In Progress</option>
-                        <option value="quoted">Survey Completed (Ready for Final Quote / BOM)</option>
+                        <option value="quoted">Survey Completed (Ready for Final BOM / Quote)</option>
                         <option value="converted">Feasibility Approved (Ready for Installation)</option>
                     </select>
                 </div>
@@ -253,6 +255,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';
         let sb = null;
         let myAssignedJobs = [];
+        let currentEngineerEmail = null;
 
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
             sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -270,7 +273,7 @@
             e.preventDefault();
             if (!sb) { showToast('⚠️ Add Supabase credentials at top of script'); return; }
 
-            const email = document.getElementById('loginEmail').value.trim();
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const password = document.getElementById('loginPassword').value;
             const btn = document.getElementById('loginBtn');
             btn.disabled = true; btn.textContent = 'Verifying…';
@@ -279,50 +282,57 @@
             btn.disabled = false; btn.textContent = 'Sign In';
 
             if (error) {
-                showToast('❌ Invalid email or password');
+                showToast('❌ Invalid staff email or password');
                 return;
             }
-            initApp();
+            initApp(data.user);
         });
 
         async function signOut() {
             if (sb) await sb.auth.signOut();
+            currentEngineerEmail = null;
             document.getElementById('appScreen').style.display = 'none';
             document.getElementById('userNav').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
         }
 
-        async function initApp() {
+        async function initApp(user) {
+            currentEngineerEmail = user.email.toLowerCase();
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             document.getElementById('userNav').style.display = 'flex';
+            document.getElementById('activeEngineerEmail').textContent = currentEngineerEmail;
             loadAssignedJobs();
         }
 
         (async () => {
             if (!sb) return;
             const { data: { session } } = await sb.auth.getSession();
-            if (session?.user) initApp();
+            if (session?.user) initApp(session.user);
         })();
 
-        // ── LOAD ASSIGNED WORK ORDERS ──
+        // ── STRICT FILTER: FETCH ONLY ASSIGNED JOBS ──
         async function loadAssignedJobs() {
-            const list = document.getElementById('jobsList');
-            list.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">Fetching assigned jobs…</div>';
+            if (!currentEngineerEmail) return;
 
-            // Select active leads assigned to field operations
+            const list = document.getElementById('jobsList');
+            list.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">Fetching your assigned work orders…</div>';
+
+            // Query strictly filtered by the technician's logged-in email
             const { data, error } = await sb
                 .from('eoi_submissions')
                 .select('*')
+                .eq('assigned_engineer_email', currentEngineerEmail)
                 .order('created_at', { ascending: false });
 
             if (error) {
                 list.innerHTML = '<div style="color:var(--red); text-align:center; padding:2rem;">Failed to load assignments</div>';
+                console.error(error);
                 return;
             }
 
-            // In field mode: show leads where an engineer is assigned or status is relevant
             myAssignedJobs = data || [];
+            document.getElementById('jobCountSub').textContent = `${myAssignedJobs.length} active assignment(s)`;
             renderJobs();
         }
 
@@ -338,8 +348,8 @@
             empty.style.display = 'none';
 
             list.innerHTML = myAssignedJobs.map(j => {
-                const fullAddr = j.address || `${j.village || ''}, ${j.district || ''}, ${j.state || ''}` || j.city || 'No Address';
-                const mapQuery = encodeURIComponent(`${fullAddr}, Andhra Pradesh`);
+                const fullAddr = j.address || `${j.village || ''}, ${j.district || ''}, ${j.state || ''}` || j.city || 'No Address Provided';
+                const mapQuery = encodeURIComponent(`${fullAddr}`);
                 const phoneClean = (j.phone || '').replace(/\D/g, '');
 
                 return `
@@ -358,6 +368,7 @@
                             <span class="tag">☀️ Capacity: ${j.system_size || '3-5 kW'}</span>
                             <span class="tag">⚡ Type: ${j.system_type || 'On-grid'}</span>
                             ${j.survey_date ? `<span class="tag" style="color:var(--cyan);">📅 Survey: ${j.survey_date}</span>` : ''}
+                            ${j.installation_date ? `<span class="tag" style="color:var(--sun-core);">🛠️ Install: ${j.installation_date}</span>` : ''}
                         </div>
 
                         <div class="action-grid">
