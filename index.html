@@ -1,8 +1,8 @@
 <!DOCTYPE html><html class="dark" lang="en"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-   <title>TENGOSOLAR</title>
-   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+    <title>TENGOSOLAR</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
     <meta name="description" content="Tengosolar is an upcoming indian startup focusing on renewable energy production using solar power systems. while being cost effective, we work on and solve your everyday energy problems with a unique and mordern approach. contact us if you want energy or want to partner up.">
     <meta name="robots" content="index, follow">
 
@@ -182,46 +182,35 @@
             background: linear-gradient(90deg, transparent, theme("colors.sun-deep"), transparent);
             opacity: 0.6
         }
-        .form-input {
-            background-color: rgba(4, 14, 26, 0.5);
+        /* --- Overrides for Form Inputs and Focus Visibility --- */
+        .form-input, .form-select, textarea.form-input {
+            background-color: rgba(4, 14, 26, 0.75) !important;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: theme("colors.on-surface");
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #ffffff !important;
             border-radius: theme("borderRadius.DEFAULT");
             padding: 0.7rem 0.9rem;
             width: 100%;
             font-family: theme("fontFamily.body-md");
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            outline: none
+            transition: all 0.2s ease;
+            outline: none !important;
+            box-shadow: none !important;
         }
-        .form-input:focus {
-            border-color: theme("colors.sun-core");
-            background-color: rgba(4, 14, 26, 0.7)
+        .form-input:focus, .form-select:focus, textarea.form-input:focus {
+            border-color: theme("colors.sun-core") !important;
+            background-color: #071525 !important;
+            color: #ffffff !important;
+            outline: none !important;
+            box-shadow: 0 0 0 2px rgba(255, 216, 77, 0.25) !important;
         }
         .form-input::placeholder {
-            color: theme("colors.text-muted")
-        }
-        .form-select {
-            background-color: rgba(4, 14, 26, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: theme("colors.on-surface");
-            border-radius: theme("borderRadius.DEFAULT");
-            padding: 0.7rem 0.9rem;
-            width: 100%;
-            font-family: theme("fontFamily.body-md");
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            outline: none;
-            appearance: none
-        }
-        .form-select:focus {
-            border-color: theme("colors.sun-core")
+            color: theme("colors.text-muted") !important;
+            opacity: 0.7;
         }
         .form-select option {
             background-color: theme("colors.sky-deep");
-            color: theme("colors.on-surface")
+            color: #ffffff;
         }
         .progress-bar-container {
             background-color: rgba(255, 255, 255, 0.1);
@@ -349,18 +338,22 @@
             font-size: 0.75rem;
             margin-top: 0.35rem
         }
-        .field.invalid input, .field.invalid select {
-            border-color: theme("colors.error")
+        .field.invalid input, .field.invalid select, .field.invalid textarea {
+            border-color: theme("colors.error") !important;
+            box-shadow: 0 0 0 1px theme("colors.error") !important;
         }
         .field.invalid .field-error {
-            display: block
+            display: block !important;
+        }
+        .field.invalid .check-row {
+            color: theme("colors.error") !important;
         }
         #toast {
             position: fixed;
             bottom: 1.5rem;
             left: 50%;
             transform: translatex(-50%) translatey(20px);
-            background: rgba(14, 32, 56, 0.9);
+            background: rgba(14, 32, 56, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid theme("colors.error");
             color: #fff;
@@ -870,8 +863,8 @@
 </div>
 <div class="field" id="f-city">
 <label class="block text-[0.85rem] font-semibold text-white mb-[0.5rem]">City <span class="text-sun-core">*</span></label>
-<p class="text-text-body text-lg max-w-[460px] mx-auto md:mx-0 mb-8 text-shadow-subtle">current operation: Guntur, Krishna Districts</p>
-<input autocomplete="address-level2" class="form-input" id="city" placeholder="eg. Amaravati, Andra Pradesh" type="text">
+<p class="text-text-body text-sm max-w-[460px] mx-auto md:mx-0 mb-3 text-shadow-subtle">Current operation: Guntur, Krishna Districts</p>
+<input autocomplete="address-level2" class="form-input" id="city" placeholder="eg. Amaravati, Andhra Pradesh" type="text">
 <div class="field-error">Please enter your city.</div>
 </div>
 <div class="field">
@@ -998,7 +991,7 @@
         const muteIcon = document.getElementById('muteIcon');
 
         if (heroVideo) {
-            heroVideo.muted = true; // default muted
+            heroVideo.muted = true;
         }
 
         function togglePlayPause() {
@@ -1075,8 +1068,7 @@
 
         /* Form & Supabase Handling */
         const SUPABASE_URL = 'https://lkvhomycyufmzwtyjvbz.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY'; 
-
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';
         let sb = null;
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
             sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1110,15 +1102,25 @@
             });
         });
 
-        const requiredIds = ['name', 'phone', 'email', 'city'];
+        const requiredIds = ['name', 'phone', 'email', 'emailConfirm', 'city'];
         function updateProgress() {
-            const filled = requiredIds.filter(id => document.getElementById(id).value.trim().length > 0).length;
+            const filled = ['name', 'phone', 'email', 'city'].filter(id => document.getElementById(id).value.trim().length > 0).length;
             const consentDone = document.getElementById('consent').checked ? 1 : 0;
-            const total = requiredIds.length + 1;
+            const total = 5;
             document.getElementById('progressFill').style.width = `${((filled + consentDone) / total) * 100}%`;
         }
-        requiredIds.forEach(id => document.getElementById(id).addEventListener('input', updateProgress));
-        document.getElementById('consent').addEventListener('change', updateProgress);
+        requiredIds.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', () => {
+                updateProgress();
+                // Clear validation errors dynamically as the user types
+                setInvalid(`f-${id === 'emailConfirm' ? 'email-confirm' : id}`, false);
+            });
+        });
+        document.getElementById('consent').addEventListener('change', () => {
+            updateProgress();
+            setInvalid('f-consent', false);
+        });
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -1129,16 +1131,11 @@
 
         function setInvalid(fieldId, isInvalid) {
             const field = document.getElementById(fieldId);
-            if(isInvalid) {
+            if (!field) return;
+            if (isInvalid) {
                 field.classList.add('invalid');
-                if(fieldId === 'f-consent') {
-                    field.querySelector('.check-row').classList.add('text-error');
-                }
             } else {
                 field.classList.remove('invalid');
-                if(fieldId === 'f-consent') {
-                    field.querySelector('.check-row').classList.remove('text-error');
-                }
             }
         }
 
@@ -1151,26 +1148,50 @@
             const city = document.getElementById('city').value.trim();
             const consent = document.getElementById('consent').checked;
 
-            setInvalid('f-name', !name); if (!name) ok = false;
-            const phoneDigits = phone.replace(/\D/g, '');
+            // Name check
+            const nameOk = name.length > 0;
+            setInvalid('f-name', !nameOk);
+            if (!nameOk) ok = false;
+
+            // Phone check: strips spaces, dashes, +91, and leading 0s
+            let phoneDigits = phone.replace(/\D/g, '');
+            if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) {
+                phoneDigits = phoneDigits.slice(2);
+            } else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) {
+                phoneDigits = phoneDigits.slice(1);
+            }
             const phoneOk = phoneDigits.length === 10;
-            setInvalid('f-phone', !phoneOk); if (!phoneOk) ok = false;
-            setInvalid('f-city', !city); if (!city) ok = false;
+            setInvalid('f-phone', !phoneOk);
+            if (!phoneOk) ok = false;
 
+            // City check
+            const cityOk = city.length > 0;
+            setInvalid('f-city', !cityOk);
+            if (!cityOk) ok = false;
+
+            // Email check
             const emailOk = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-            setInvalid('f-email', !emailOk); if (!emailOk) ok = false;
+            setInvalid('f-email', !emailOk);
+            if (!emailOk) ok = false;
 
+            // Re-entered email check
             const emailMatch = emailOk && email.toLowerCase() === emailConfirm.toLowerCase();
-            setInvalid('f-email-confirm', !emailMatch); if (!emailMatch) ok = false;
+            setInvalid('f-email-confirm', !emailMatch);
+            if (!emailMatch) ok = false;
 
-            setInvalid('f-consent', !consent); if (!consent) ok = false;
+            // Consent check
+            setInvalid('f-consent', !consent);
+            if (!consent) ok = false;
 
             return ok;
         }
 
         document.getElementById('eoiForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            if (!validate()) { showToast('Please check the highlighted fields'); return; }
+            if (!validate()) { 
+                showToast('Please check the highlighted fields'); 
+                return; 
+            }
             showReview();
         });
 
@@ -1228,7 +1249,7 @@
 
         async function confirmSubmission() {
             if (!sb) {
-                showToast('⚠️ Form isn\'t connected yet — add SUPABASE_URL / SUPABASE_ANON_KEY');
+                showToast('⚠️ Demo Mode: Connecting to Supabase placeholder');
                 setTimeout(() => {
                     const ref = generateReferenceId();
                     lastSubmittedPayload = currentPayload();
@@ -1367,6 +1388,8 @@
             document.getElementById('successCard').classList.add('hidden');
             document.getElementById('confirmSubmitBtn').disabled = false;
             document.getElementById('confirmSubmitBtn').textContent = 'Confirm & Submit';
+
+            document.querySelectorAll('#view-contact .field').forEach(f => f.classList.remove('invalid'));
 
             document.querySelectorAll('#view-contact .seg:not(#ownershipSeg) .seg-btn').forEach(b => b.classList.remove('active'));
             document.querySelector('#view-contact .seg:not(#ownershipSeg) .seg-btn[data-val="home"]').classList.add('active');
