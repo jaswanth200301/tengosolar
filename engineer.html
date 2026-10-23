@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Field Engineer App — Tengo Solar</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+    :root {
+        --sun-core: #FFD84D;
+        --sun-amber: #F5A623;
+        --sky-void: #040E1A;
+        --sky-deep: #071525;
+        --sky-mid: #0E2038;
+        --sky-rim: #1A3550;
+        --leaf: #22C55E;
+        --cyan: #06B6D4;
+        --red: #EF4444;
+        --text-body: #C8DAE8;
+        --text-muted: #6B8FA8;
+        --radius: 0.85rem;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: var(--sky-void);
+        color: var(--text-body);
+        font-family: 'Inter', system-ui, sans-serif;
+        min-height: 100vh;
+        padding-bottom: 5rem;
+    }
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; color: #fff; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Top Bar */
+    header {
+        position: sticky; top: 0;
+        background: rgba(4,14,26,0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--sky-rim);
+        padding: 0.9rem 1.1rem;
+        display: flex; justify-content: space-between; align-items: center;
+        z-index: 30;
+    }
+    .brand { font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.4rem; }
+    .badge-eng { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 999px; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 1rem; }
+
+    /* Login Screen */
+    #loginScreen { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    .login-box { width: 100%; background: linear-gradient(160deg, rgba(14,32,56,0.9), rgba(7,21,37,0.9)); border: 1px solid var(--sky-rim); border-radius: 1.5rem; padding: 2rem 1.5rem; }
+    
+    .field { margin-bottom: 0.9rem; }
+    .field label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-body); }
+    input, select, textarea {
+        width: 100%;
+        background: rgba(4,14,26,0.7);
+        border: 1px solid var(--sky-rim);
+        border-radius: 0.5rem;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.9rem;
+        padding: 0.7rem 0.85rem;
+        outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
+
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+        background: linear-gradient(135deg, var(--sun-core), var(--sun-amber));
+        color: #1a1208; font-weight: 700; font-size: 0.95rem;
+        padding: 0.75rem 1.2rem; border: none; border-radius: var(--radius);
+        cursor: pointer; width: 100%;
+    }
+    .btn-cyan { background: linear-gradient(135deg, #22d3ee, #0891b2); color: #fff; }
+    .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text-body); border: 1px solid var(--sky-rim); border-radius: 0.5rem; padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+
+    /* Work Order Card */
+    .job-card {
+        background: linear-gradient(160deg, rgba(14,32,56,0.85), rgba(7,21,37,0.85));
+        border: 1px solid var(--sky-rim);
+        border-radius: var(--radius);
+        padding: 1.15rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .job-card.active-job { border-color: var(--cyan); box-shadow: 0 0 15px rgba(6,182,212,0.25); }
+    .job-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
+    .job-name { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .job-ref { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--sun-core); }
+    .job-addr { font-size: 0.85rem; color: #fff; line-height: 1.45; margin-bottom: 0.75rem; }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; font-size: 0.72rem; }
+    .tag { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 0.2rem 0.55rem; border-radius: 999px; }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .btn-act {
+        display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+        padding: 0.65rem 0.5rem; border-radius: 0.5rem; font-size: 0.82rem; font-weight: 600;
+        text-decoration: none; text-align: center; cursor: pointer; border: none;
+    }
+    .btn-call { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: var(--leaf); }
+    .btn-map { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; }
+    .btn-survey { background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.4); color: var(--sun-core); width: 100%; padding: 0.75rem; font-weight: 700; font-size: 0.88rem; }
+
+    /* Survey Modal / Form */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(4,14,26,0.92); backdrop-filter: blur(6px); z-index: 50; display: none; overflow-y: auto; padding: 1rem; }
+    .modal-overlay.open { display: block; }
+    .modal-sheet { background: linear-gradient(160deg, #0e2038, #071525); border: 1px solid var(--sky-rim); border-radius: 1.25rem; max-width: 560px; margin: 1rem auto 3rem; padding: 1.5rem; }
+    .modal-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+
+    #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: #0e2038; border: 1px solid var(--cyan); color: #fff; font-size: 0.85rem; font-weight: 600; padding: 0.75rem 1.2rem; border-radius: var(--radius); opacity: 0; visibility: hidden; transition: all 0.25s ease; z-index: 999; }
+    #toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <span>Tengo Solar</span>
+            <span class="badge-eng">FIELD APP</span>
+        </div>
+        <div id="userNav" style="display:none; align-items:center; gap:0.5rem;">
+            <button class="btn-ghost" onclick="signOut()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- ── AUTH ── -->
+        <div id="loginScreen">
+            <div class="login-box">
+                <h2 style="margin-bottom:0.3rem;">Technician Portal</h2>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem;">Log in to access your daily rooftop solar work orders.</p>
+                <form id="loginForm">
+                    <div class="field">
+                        <label>Staff Email</label>
+                        <input type="email" id="loginEmail" required placeholder="engineer@tengosolar.com">
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-cyan" id="loginBtn" style="margin-top:0.5rem;">Sign In</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── WORK ORDERS LIST ── -->
+        <div id="appScreen" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:0.8rem 0 1.1rem;">
+                <div>
+                    <h3 style="font-size:1.15rem;">Assigned Work Orders</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted);">Real-time dispatch from Admin Desk</p>
+                </div>
+                <button class="btn-ghost" onclick="loadAssignedJobs()">🔄 Refresh</button>
+            </div>
+
+            <div id="jobsList"></div>
+            <div id="emptyJobs" style="display:none; text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">☀️</div>
+                No pending work orders assigned to you right now.
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2-MINUTE ON-ROOF SURVEY MODAL ── -->
+    <div class="modal-overlay" id="surveyModal">
+        <div class="modal-sheet">
+            <div class="modal-title">
+                <div>
+                    <h3>Terrace Technical Survey</h3>
+                    <p style="font-size:0.75rem; color:var(--cyan);" id="surveyCustomerRef">—</p>
+                </div>
+                <button class="btn-ghost" onclick="closeSurveyModal()">✕ Close</button>
+            </div>
+
+            <form id="surveyForm">
+                <input type="hidden" id="surveyJobId">
+
+                <!-- 1. APCPDCL / DISCOM Critical Checks -->
+                <div style="background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.25); border-radius:0.5rem; padding:0.85rem; margin-bottom:1rem;">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--cyan); margin-bottom:0.6rem;">⚡ APCPDCL Bill &amp; Meter Verification</div>
+                    <div class="field">
+                        <label>Service / Consumer Number (From Electricity Bill)</label>
+                        <input type="text" id="sConsumerNo" placeholder="e.g. 61234567890" required>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <div class="field">
+                            <label>Sanctioned Load (kW)</label>
+                            <input type="text" id="sSanctionedLoad" placeholder="e.g. 3 kW" required>
+                        </div>
+                        <div class="field">
+                            <label>Meter Phase</label>
+                            <select id="sMeterPhase">
+                                <option value="1-Phase (230V)">1-Phase (230V)</option>
+                                <option value="3-Phase (415V)">3-Phase (415V)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Roof & Structural Suitability -->
+                <div class="field">
+                    <label>Roof Structure Type</label>
+                    <select id="sRoofType">
+                        <option value="RCC Flat Roof (Standard Anchor)">Flat RCC Roof (Standard Concrete Anchor)</option>
+                        <option value="Metal Trapezoidal Sheet">Metal Sheet Roof (Rail Clamps)</option>
+                        <option value="Tiled / Slanted Roof">Tiled / Slanted Roof</option>
+                        <option value="Elevated Super-Structure Needed">Elevated Structure Needed (&gt;6 ft height)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Shadow Obstructions (Water tank, trees, parapet)</label>
+                    <input type="text" id="sShadow" placeholder="e.g. Overhead water tank on West side; shadow free 9AM-4PM">
+                </div>
+
+                <div class="field">
+                    <label>Estimated DC Cable Run (Panels to Inverter to MCB)</label>
+                    <input type="text" id="sCableLength" placeholder="e.g. ~18 meters (2 floors drop)" required>
+                </div>
+
+                <div class="field">
+                    <label>Site Survey Notes &amp; Recommendations</label>
+                    <textarea id="sNotes" rows="2" placeholder="e.g. Earthing pit location marked near garden; client requested inverter inside staircase cabin"></textarea>
+                </div>
+
+                <div class="field" style="margin-top:1rem;">
+                    <label>Update Lead Pipeline Status</label>
+                    <select id="sStatusUpdate">
+                        <option value="assigned_engineer">Survey In Progress</option>
+                        <option value="quoted">Survey Completed (Ready for Final Quote / BOM)</option>
+                        <option value="converted">Feasibility Approved (Ready for Installation)</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:0.6rem; margin-top:1.25rem;">
+                    <button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeSurveyModal()">Cancel</button>
+                    <button type="submit" class="btn btn-cyan" style="flex:2;" id="saveSurveyBtn">Submit Survey to Office</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ── ENTER YOUR SUPABASE CONFIG ──
+        const SUPABASE_URL = 'https://lkvhomycyufmzwtyjvbz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';
+        let sb = null;
+        let myAssignedJobs = [];
+
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        // ── AUTHENTICATION ──
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!sb) { showToast('⚠️ Add Supabase credentials at top of script'); return; }
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true; btn.textContent = 'Verifying…';
+
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            btn.disabled = false; btn.textContent = 'Sign In';
+
+            if (error) {
+                showToast('❌ Invalid email or password');
+                return;
+            }
+            initApp();
+        });
+
+        async function signOut() {
+            if (sb) await sb.auth.signOut();
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('userNav').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        async function initApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            document.getElementById('userNav').style.display = 'flex';
+            loadAssignedJobs();
+        }
+
+        (async () => {
+            if (!sb) return;
+            const { data: { session } } = await sb.auth.getSession();
+            if (session?.user) initApp();
+        })();
+
+        // ── LOAD ASSIGNED WORK ORDERS ──
+        async function loadAssignedJobs() {
+            const list = document.getElementById('jobsList');
+            list.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">Fetching assigned jobs…</div>';
+
+            // Select active leads assigned to field operations
+            const { data, error } = await sb
+                .from('eoi_submissions')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                list.innerHTML = '<div style="color:var(--red); text-align:center; padding:2rem;">Failed to load assignments</div>';
+                return;
+            }
+
+            // In field mode: show leads where an engineer is assigned or status is relevant
+            myAssignedJobs = data || [];
+            renderJobs();
+        }
+
+        function renderJobs() {
+            const list = document.getElementById('jobsList');
+            const empty = document.getElementById('emptyJobs');
+
+            if (myAssignedJobs.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            list.innerHTML = myAssignedJobs.map(j => {
+                const fullAddr = j.address || `${j.village || ''}, ${j.district || ''}, ${j.state || ''}` || j.city || 'No Address';
+                const mapQuery = encodeURIComponent(`${fullAddr}, Andhra Pradesh`);
+                const phoneClean = (j.phone || '').replace(/\D/g, '');
+
+                return `
+                    <div class="job-card ${j.status === 'assigned_engineer' ? 'active-job' : ''}">
+                        <div class="job-header">
+                            <div>
+                                <div class="job-name">${j.name}</div>
+                                <div class="job-ref">${j.reference_id || 'REF-TBN'}</div>
+                            </div>
+                            <span class="badge-eng" style="font-size:0.68rem;">${(j.status || 'new').replace('_', ' ')}</span>
+                        </div>
+
+                        <div class="job-addr">📍 ${fullAddr}</div>
+
+                        <div class="job-tags">
+                            <span class="tag">☀️ Capacity: ${j.system_size || '3-5 kW'}</span>
+                            <span class="tag">⚡ Type: ${j.system_type || 'On-grid'}</span>
+                            ${j.survey_date ? `<span class="tag" style="color:var(--cyan);">📅 Survey: ${j.survey_date}</span>` : ''}
+                        </div>
+
+                        <div class="action-grid">
+                            <a class="btn-act btn-call" href="tel:${phoneClean}">📞 Call Client</a>
+                            <a class="btn-act btn-map" href="https://www.google.com/maps/search/?api=1&query=${mapQuery}" target="_blank">🗺️ Navigate</a>
+                        </div>
+
+                        <button class="btn btn-survey" onclick="openSurveyModal('${j.id}')">
+                            📝 ${j.consumer_number ? 'Update Site Survey' : 'Fill Rooftop Survey Checklist'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ── ON-ROOF SURVEY MODAL LOGIC ──
+        function openSurveyModal(id) {
+            const j = myAssignedJobs.find(x => x.id === id);
+            if (!j) return;
+
+            document.getElementById('surveyJobId').value = j.id;
+            document.getElementById('surveyCustomerRef').textContent = `${j.name} (${j.reference_id || 'REF'})`;
+
+            document.getElementById('sConsumerNo').value = j.consumer_number || '';
+            document.getElementById('sSanctionedLoad').value = j.sanctioned_load || '';
+            document.getElementById('sMeterPhase').value = j.meter_phase || '1-Phase (230V)';
+            document.getElementById('sRoofType').value = j.roof_type || 'RCC Flat Roof (Standard Anchor)';
+            document.getElementById('sShadow').value = j.shadow_obstructions || '';
+            document.getElementById('sCableLength').value = j.est_cable_length || '';
+            document.getElementById('sNotes').value = j.survey_notes || j.internal_notes || '';
+            document.getElementById('sStatusUpdate').value = j.status === 'assigned_engineer' ? 'quoted' : (j.status || 'quoted');
+
+            document.getElementById('surveyModal').classList.add('open');
+        }
+
+        function closeSurveyModal() {
+            document.getElementById('surveyModal').classList.remove('open');
+        }
+
+        document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('surveyJobId').value;
+            const btn = document.getElementById('saveSurveyBtn');
+
+            btn.disabled = true; btn.textContent = 'Transmitting to Office…';
+
+            const payload = {
+                consumer_number: document.getElementById('sConsumerNo').value.trim(),
+                sanctioned_load: document.getElementById('sSanctionedLoad').value.trim(),
+                meter_phase: document.getElementById('sMeterPhase').value,
+                roof_type: document.getElementById('sRoofType').value,
+                shadow_obstructions: document.getElementById('sShadow').value.trim(),
+                est_cable_length: document.getElementById('sCableLength').value.trim(),
+                survey_notes: document.getElementById('sNotes').value.trim(),
+                internal_notes: document.getElementById('sNotes').value.trim(),
+                status: document.getElementById('sStatusUpdate').value,
+                survey_completed_at: new Date().toISOString()
+            };
+
+            const { error } = await sb
+                .from('eoi_submissions')
+                .update(payload)
+                .eq('id', id);
+
+            btn.disabled = false; btn.textContent = 'Submit Survey to Office';
+
+            if (error) {
+                showToast('❌ Survey submission failed');
+                console.error(error);
+                return;
+            }
+
+            // Sync local array
+            const idx = myAssignedJobs.findIndex(x => x.id === id);
+            if (idx !== -1) myAssignedJobs[idx] = { ...myAssignedJobs[idx], ...payload };
+
+            closeSurveyModal();
+            renderJobs();
+            showToast('✓ Survey filed! Synced with Admin Desk.');
+        });
+    </script>
+</body>
+</html>
