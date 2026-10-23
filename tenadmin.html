@@ -583,15 +583,18 @@
 
                 <!-- Section: Engineer Assignment & Scheduling -->
                 <div class="drawer-section-card" style="background:rgba(6,182,212,0.06); border-color:rgba(6,182,212,0.25);">
-                    <h4 style="color:var(--cyan);">👷 Engineering &amp; Installation Logistics</h4>
+                    <h4 style="color:var(--cyan);">👷 Field Engineering &amp; Installation Logistics</h4>
                     <div class="modal-grid">
+                        <!-- PRESET ENGINEER SELECTION DROPDOWN -->
                         <div class="field">
-                            <label>Engineer Name</label>
-                            <input type="text" id="editAssignedEngineer" placeholder="e.g. Ramesh Babu">
+                            <label>Select Assigned Engineer <span style="color:var(--cyan)">*</span></label>
+                            <select id="editEngineerSelect">
+                                <!-- Options dynamically injected from ENGINEER_ROSTER -->
+                            </select>
                         </div>
                         <div class="field">
-                            <label>Engineer Login Email (for RLS dispatch) <span style="color:var(--cyan)">*</span></label>
-                            <input type="email" id="editAssignedEngineerEmail" placeholder="e.g. ramesh@tengosolar.com">
+                            <label>Engineer Dispatch Email</label>
+                            <input type="email" id="editAssignedEngineerEmail" readonly style="opacity:0.75; cursor:not-allowed;" placeholder="Auto-populated on selection">
                         </div>
                         <div class="field">
                             <label>Site Survey Date</label>
@@ -723,6 +726,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        // ── PRESET ENGINEER DIRECTORY ──
+        // Add, remove, or modify your field staff here
+        const ENGINEER_ROSTER = [
+            { id: '', name: 'Unassigned', email: '', region: 'None' },
+            { id: 'eng_1', name: 'Ramesh Babu', email: 'ramesh@tengosolar.com', region: 'Guntur / Amaravati' },
+            { id: 'eng_2', name: 'Suresh Kumar', email: 'suresh@tengosolar.com', region: 'Vijayawada / Krishna' },
+            { id: 'eng_3', name: 'Venkatesh Rao', email: 'venkatesh@tengosolar.com', region: 'Mangalagiri / Tenali' }
+        ];
+
         const STATUSES = ['new', 'contacted', 'quoted', 'assigned_engineer', 'converted', 'not_interested'];
         const SYSTEM_TYPE_LABELS = { on_grid: 'On-grid', off_grid: 'Off-grid', hybrid: 'Hybrid (battery)', unsure: 'Not sure yet' };
         const SYSTEM_SIZE_LABELS = { under_3kw: 'Under 3 kW', '3_5kw': '3 – 5 kW', '5_10kw': '5 – 10 kW', '10kw_plus': '10 kW+' };
@@ -761,6 +773,27 @@
             if (s === 'assigned_engineer') return 'Assigned Engineer';
             return (s || 'new').replace(/_/g, ' ');
         }
+
+        // Initialize the Engineer Dropdown
+        const engSelect = document.getElementById('editEngineerSelect');
+        const engEmailInput = document.getElementById('editAssignedEngineerEmail');
+
+        function populateEngineerDropdown() {
+            engSelect.innerHTML = ENGINEER_ROSTER.map(e => `
+                <option value="${e.email}" data-name="${e.name}">${e.name} ${e.region !== 'None' ? '— ' + e.region : ''}</option>
+            `).join('');
+        }
+        populateEngineerDropdown();
+
+        // Auto-fill read-only email box when dropdown changes
+        engSelect.addEventListener('change', () => {
+            engEmailInput.value = engSelect.value || '';
+            const statusSelect = document.getElementById('editStatusSelect');
+            // If an engineer is picked and status is still new/contacted, automatically nudge to 'assigned_engineer'
+            if (engSelect.value && ['new', 'contacted', 'quoted'].includes(statusSelect.value)) {
+                statusSelect.value = 'assigned_engineer';
+            }
+        });
 
         // ── AUTH ──
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -892,8 +925,9 @@
                             ${locTag ? `<div class="sub" style="color:var(--sun-amber); font-size:0.72rem; margin-top:2px;">📍 ${locTag}</div>` : ''}
                         </td>
                         <td>
-                            ${r.assigned_engineer ? `<span class="badge-tag eng">👷 ${escHtml(r.assigned_engineer)}</span>` : '<span class="sub">Unassigned</span>'}
-                            ${r.assigned_engineer_email ? `<div class="sub" style="font-size:0.7rem; color:var(--text-muted);">${escHtml(r.assigned_engineer_email)}</div>` : ''}
+                            ${r.assigned_engineer && r.assigned_engineer !== 'Unassigned' 
+                                ? `<span class="badge-tag eng">👷 ${escHtml(r.assigned_engineer)}</span>` 
+                                : '<span class="sub">Unassigned</span>'}
                             ${r.installation_date ? `<div class="sub" style="color:var(--sun-core); margin-top:2px;">📅 Install: ${new Date(r.installation_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>` : ''}
                         </td>
                         <td class="sub">${SYSTEM_SIZE_LABELS[r.system_size] || r.system_size || '—'}</td>
@@ -974,8 +1008,21 @@
             if (!r) return;
 
             document.getElementById('editId').value = r.id;
-            document.getElementById('editAssignedEngineer').value = r.assigned_engineer || '';
-            document.getElementById('editAssignedEngineerEmail').value = r.assigned_engineer_email || '';
+
+            // Sync engineer dropdown
+            const matchingEng = ENGINEER_ROSTER.find(e => 
+                (r.assigned_engineer_email && e.email === r.assigned_engineer_email) || 
+                (r.assigned_engineer && e.name === r.assigned_engineer)
+            );
+
+            if (matchingEng) {
+                engSelect.value = matchingEng.email;
+                engEmailInput.value = matchingEng.email;
+            } else {
+                engSelect.value = '';
+                engEmailInput.value = '';
+            }
+
             document.getElementById('editSurveyDate').value = r.survey_date || '';
             document.getElementById('editInstallDate').value = r.installation_date || '';
             document.getElementById('editInternalNotes').value = r.internal_notes || '';
@@ -1038,7 +1085,11 @@
             const distVal = document.getElementById('editDistrict').value.trim();
             const vlgVal = document.getElementById('editVillage').value.trim();
             const addrVal = document.getElementById('editAddress').value.trim();
-            const engEmailVal = document.getElementById('editAssignedEngineerEmail').value.trim().toLowerCase();
+            
+            // Read name and email from selected dropdown option
+            const selectedOpt = engSelect.options[engSelect.selectedIndex];
+            const engEmailVal = engSelect.value ? engSelect.value.trim().toLowerCase() : null;
+            const engNameVal = engSelect.value ? selectedOpt.dataset.name : null;
 
             const payload = {
                 name: document.getElementById('editName').value.trim(),
@@ -1049,8 +1100,8 @@
                 village: vlgVal,
                 address: addrVal,
                 city: addrVal,
-                assigned_engineer: document.getElementById('editAssignedEngineer').value.trim() || null,
-                assigned_engineer_email: engEmailVal || null,
+                assigned_engineer: engNameVal,
+                assigned_engineer_email: engEmailVal,
                 survey_date: document.getElementById('editSurveyDate').value || null,
                 installation_date: document.getElementById('editInstallDate').value || null,
                 internal_notes: document.getElementById('editInternalNotes').value.trim() || null,
@@ -1087,7 +1138,7 @@
             renderTable();
             renderKPIs();
             if (currentDrawerId === id) openDrawer(id);
-            showToast('✓ Lead updated & dispatched successfully');
+            showToast('✓ Lead assigned & dispatched successfully');
         });
 
         // ── DATE-WISE CSV EXPORT ──
