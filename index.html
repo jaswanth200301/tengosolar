@@ -203,13 +203,11 @@
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         }
-        details.faq-item {
-            background: rgba(14, 32, 56, 0.2);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: theme("borderRadius.lg");
-            overflow: hidden;
-            margin-bottom: 0.7rem;
+        details.faq-item .faq-body {
+    padding: 0 1.2rem 1.1rem;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    line-height: 1.6;
         }
         details.faq-item summary {
             padding: 1rem 1.2rem;
@@ -274,11 +272,14 @@
             color: theme("colors.text-muted");
             cursor: pointer;
         }
-        .check-row input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: theme("colors.sun-core");
-            cursor: pointer;
+        .check-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.55rem;
+    font-size: 0.8rem;
+    color: #22C55E;
+    cursor: pointer;
         }
 
         /* Validation Alerts */
