@@ -246,22 +246,27 @@
             gap: 0.6rem;
         }
         .seg-btn {
-            background: rgba(4, 14, 26, 0.5);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: theme("borderRadius.DEFAULT");
-            color: theme("colors.text-muted");
-            font-size: 0.88rem;
-            font-weight: 600;
-            padding: 0.7rem;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.15s ease;
+    background: rgba(4, 14, 26, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: theme("borderRadius.DEFAULT");
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.7rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
         }
+    .seg-btn:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.08);
+}
         .seg-btn.active {
-            border-color: theme("colors.sun-core");
-            color: theme("colors.sun-core");
-            background: rgba(255, 216, 77, 0.1);
+    border-color: theme("colors.sun-core");
+    color: theme("colors.sun-core"); /* Vibrant solar yellow/gold when selected */
+    background: rgba(255, 216, 77, 0.18);
+    box-shadow: 0 0 12px rgba(255, 216, 77, 0.25);
         }
         .check-row {
             display: flex;
