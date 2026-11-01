@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>TENGOSOLAR — On-Demand Rooftop Solar in Andhra Pradesh</title>
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
     <meta name="description" content="Tengosolar is an upcoming Indian renewable EPC platform solving everyday energy problems with a decentralized, on-demand approach. We provide Tier-1 solar systems, expert installation, and hassle-free PM Surya Ghar subsidy processing.">
@@ -50,11 +50,12 @@
                         "DEFAULT": "0.25rem",
                         "lg": "0.5rem",
                         "xl": "0.75rem",
+                        "2xl": "1rem",
                         "full": "9999px"
                     },
                     spacing: {
                         "section": "80px",
-                        "nav-max": "900px",
+                        "nav-max": "1080px",
                         "medium": "18px",
                         "standard": "24px",
                         "tight": "8px",
@@ -204,10 +205,10 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         }
         details.faq-item .faq-body {
-    padding: 0 1.2rem 1.1rem;
-    color: #e5e7eb;
-    font-size: 0.85rem;
-    line-height: 1.6;
+            padding: 0 1.2rem 1.1rem;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            line-height: 1.6;
         }
         details.faq-item summary {
             padding: 1rem 1.2rem;
@@ -234,39 +235,33 @@
         details.faq-item[open] summary::after {
             transform: rotate(45deg);
         }
-        details.faq-item .faq-body {
-            padding: 0 1.2rem 1.1rem;
-            color: theme("colors.text-muted");
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
         .seg {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.6rem;
         }
         .seg-btn {
-    background: rgba(4, 14, 26, 0.6);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: theme("borderRadius.DEFAULT");
-    color: #ffffff;
-    font-size: 0.88rem;
-    font-weight: 600;
-    padding: 0.7rem;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.15s ease;
+            background: rgba(4, 14, 26, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: theme("borderRadius.DEFAULT");
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.7rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease;
         }
-    .seg-btn:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.08);
-}
+        .seg-btn:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
         .seg-btn.active {
-    border-color: theme("colors.sun-core");
-    color: theme("colors.sun-core"); /* Vibrant solar yellow/gold when selected */
-    background: rgba(255, 216, 77, 0.18);
-    box-shadow: 0 0 12px rgba(255, 216, 77, 0.25);
+            border-color: theme("colors.sun-core");
+            color: theme("colors.sun-core");
+            background: rgba(255, 216, 77, 0.18);
+            box-shadow: 0 0 12px rgba(255, 216, 77, 0.25);
         }
         .check-row {
             display: flex;
@@ -274,17 +269,8 @@
             gap: 0.5rem;
             margin-top: 0.55rem;
             font-size: 0.8rem;
-            color: theme("colors.text-muted");
+            color: #22C55E;
             cursor: pointer;
-        }
-        .check-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.55rem;
-    font-size: 0.8rem;
-    color: #22C55E;
-    cursor: pointer;
         }
 
         /* Validation Alerts */
@@ -378,14 +364,12 @@
             color: theme("colors.text-muted");
             text-decoration: none;
             cursor: pointer;
-            transition: color 0.15s ease;
+            transition: all 0.2s ease;
         }
         .nav-link:hover { color: #fff; }
         .nav-link.active {
             color: theme("colors.sun-core");
-            border-bottom: 2px solid theme("colors.sun-core");
-            padding-bottom: 4px;
-            font-weight: bold;
+            font-weight: 700;
         }
         .view {
             display: none !important;
@@ -515,11 +499,12 @@
     </div>
 </div>
 
-<!-- Top Navigation -->
-<nav class="fixed top-0 w-full z-50 bg-sky-mid/70 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_20px_rgba(224,123,10,0.1)]">
-    <div class="flex justify-between items-center px-standard py-medium max-w-nav-max mx-auto">
+<!-- Modern Top Navigation with Dropdown Menu -->
+<nav class="fixed top-0 w-full z-50 bg-sky-mid/80 backdrop-blur-2xl border-b border-white/10 shadow-[0_4px_25px_rgba(4,14,26,0.8)]">
+    <div class="flex justify-between items-center px-standard py-3.5 max-w-nav-max mx-auto">
+        <!-- Logo -->
         <button class="nav-brand font-headline-md text-headline-md font-bold text-sun-core tracking-tighter flex items-center gap-2 cursor-pointer bg-transparent border-none p-0" onclick="goTo('home')">
-            <svg class="logo-mark" height="28" style="flex-shrink:0;" viewBox="0 0 200 200" width="28">
+            <svg class="logo-mark" height="30" style="flex-shrink:0;" viewBox="0 0 200 200" width="30">
                 <defs>
                     <radialGradient cx="100" cy="100" gradientUnits="userSpaceOnUse" id="rg1_nav" r="66">
                         <stop offset="0%" stop-color="#FFFAAA"></stop>
@@ -545,14 +530,64 @@
                     <circle fill="#FFFEF0" opacity="0.96" r="3.2"></circle>
                 </g>
             </svg>
-            <span class="bg-gradient-to-r from-white to-sun-core bg-clip-text text-transparent">Tengo Solar</span>
+            <span class="bg-gradient-to-r from-white via-primary to-sun-core bg-clip-text text-transparent text-xl font-extrabold tracking-tight">Tengo Solar</span>
         </button>
-        <div class="hidden md:flex items-center gap-standard font-label-caps text-label-caps">
-            <button class="nav-link active text-white" data-view="home" onclick="goTo('home')">Home</button>
-            <button class="nav-link text-white" data-view="how" onclick="goTo('how')">How It Works</button>
-            <button class="nav-link text-white" data-view="faq" onclick="goTo('faq')">FAQ</button>
+
+        <!-- Desktop Navigation & Modern Dropdown -->
+        <div class="hidden md:flex items-center gap-7 font-label-caps text-xs tracking-wider uppercase">
+            <button class="nav-link active py-1 border-b-2 border-sun-core" data-view="home" onclick="goTo('home')">Home</button>
+            <button class="nav-link py-1 border-b-2 border-transparent" data-view="how" onclick="goTo('how')">How It Works</button>
+            <button class="nav-link py-1 border-b-2 border-transparent" data-view="faq" onclick="goTo('faq')">FAQ</button>
+
+            <!-- Modern Dropdown Menu -->
+            <div class="relative group">
+                <button class="flex items-center gap-1.5 nav-link py-2 focus:outline-none" id="dropdownBtn" aria-expanded="false">
+                    <span>Explore</span>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="absolute right-0 mt-2 w-56 rounded-xl glass-card-dark border border-white/15 p-2 shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+                    <button class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold text-text-body hover:text-sun-core hover:bg-white/5 transition-colors flex items-center gap-2.5" onclick="goTo('ideas')">
+                        <span class="text-base">💡</span>
+                        <div>
+                            <div class="font-bold">New Ideas Hub</div>
+                            <div class="text-[10px] text-text-muted lowercase tracking-normal">Suggest features & solutions</div>
+                        </div>
+                    </button>
+                    <button class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold text-text-body hover:text-sun-core hover:bg-white/5 transition-colors flex items-center gap-2.5" onclick="goTo('contact')">
+                        <span class="text-base">📋</span>
+                        <div>
+                            <div class="font-bold">Feasibility Check</div>
+                            <div class="text-[10px] text-text-muted lowercase tracking-normal">PM Surya Ghar calculation</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
-        <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-button px-standard py-tight rounded-full glow-shadow hover:scale-95 duration-150 transition-transform nav-link" data-view="contact" onclick="goTo('contact')">Express Interest</button>
+
+        <!-- Action Button & Mobile Drawer Trigger -->
+        <div class="flex items-center gap-3">
+            <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-xs font-bold uppercase tracking-wider px-5 py-2 rounded-full glow-shadow hover:scale-95 duration-150 transition-transform cursor-pointer" onclick="goTo('contact')">
+                Express Interest
+            </button>
+            <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none" onclick="toggleMobileNav()" aria-label="Toggle Navigation">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Nav Drawer -->
+    <div id="mobileNav" class="hidden md:hidden px-standard py-4 border-t border-white/10 bg-sky-void/95 backdrop-blur-xl flex flex-col gap-3">
+        <button class="text-left py-2 text-sm text-text-body hover:text-sun-core" onclick="goTo('home'); toggleMobileNav();">Home</button>
+        <button class="text-left py-2 text-sm text-text-body hover:text-sun-core" onclick="goTo('how'); toggleMobileNav();">How It Works</button>
+        <button class="text-left py-2 text-sm text-text-body hover:text-sun-core" onclick="goTo('faq'); toggleMobileNav();">FAQ</button>
+        <button class="text-left py-2 text-sm font-semibold text-sun-core flex items-center gap-2" onclick="goTo('ideas'); toggleMobileNav();">
+            <span>💡</span> Suggest New Ideas
+        </button>
+        <button class="text-left py-2 text-sm text-text-body hover:text-sun-core" onclick="goTo('contact'); toggleMobileNav();">Express Interest</button>
     </div>
 </nav>
 
@@ -575,9 +610,14 @@
                     <p class="text-text-muted text-sm max-w-[480px] mx-auto md:mx-0 mb-8">
                         Your expressions of interest allow us to assign verified technicians and cloud warehouses across Guntur and Vijayawada, locking in your priority installation schedule.
                     </p>
-                    <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-button px-[1.8rem] py-[0.85rem] rounded-md glow-shadow hover:-translate-y-1 duration-150 transition-transform inline-flex items-center gap-2 cursor-pointer" onclick="goTo('contact')">
-                        Express Interest →
-                    </button>
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                        <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-button px-[1.8rem] py-[0.85rem] rounded-md glow-shadow hover:-translate-y-1 duration-150 transition-transform inline-flex items-center gap-2 cursor-pointer" onclick="goTo('contact')">
+                            Express Interest →
+                        </button>
+                        <button class="btn-ghost inline-flex items-center gap-2" onclick="goTo('ideas')">
+                            <span>💡</span> Share An Idea
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Video Showcase -->
@@ -740,7 +780,7 @@
         <div class="relative z-10">
             <details class="faq-item glass-card">
                 <summary>How does the ₹78,000 PM Surya Ghar subsidy get credited?</summary>
-                <div class="faq-body">Under the central scheme, residential rooftop installations up to 2 kW receive ₹60,000. An additional 1 kW adds ₹18,000, maxing out at ₹78,000 for 3 kW and higher systems. Following APCPDCL inspection and commissioning, the subsidy is disbursed directly to your Aadhaar-linked bank account within 30 days.</div>
+                <div class="faq-body">Under the central scheme, residential rooftop installations up to 2 kW receive ₹60,000. An additional 1 kW adds ₹18,000, maxing out at ₹78,000 for 3 kW and higher systems. Following APCPDCL inspection and commissioning, the subsidy is disbursed directly to your bank account within 30 days.</div>
             </details>
             <details class="faq-item glass-card">
                 <summary>Does expressing interest commit me to any payment?</summary>
@@ -767,6 +807,97 @@
             <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-button px-[2rem] py-[1rem] rounded-md glow-shadow hover:-translate-y-1 duration-150 transition-transform inline-flex items-center gap-2 cursor-pointer" onclick="goTo('contact')">
                 Express Interest →
             </button>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════ NEW IDEAS VIEW (CUSTOMER & VISITOR PORTAL) ══════════ -->
+<section class="view" id="view-ideas">
+    <div class="text-center py-[4rem] px-standard relative">
+        <span class="eyebrow"><span class="pulse-dot w-[6px] h-[6px] rounded-full bg-sun-core inline-block"></span> Innovation Sandbox</span>
+        <h1 class="font-headline-lg-mobile md:text-[2.5rem] text-white mb-3 font-bold text-shadow-subtle">Help Us Shape Decentralized Solar</h1>
+        <p class="text-text-muted text-base max-w-[520px] mx-auto">Have a suggestion for our platform, hardware, or installation process in Andhra Pradesh? We build what users want.</p>
+    </div>
+
+    <div class="py-[1rem] pb-[5.5rem] px-standard max-w-container-max mx-auto relative z-10 reveal active">
+        <div class="glass-card-dark rounded-2xl p-[2.2rem] max-w-[720px] mx-auto shadow-2xl border-white/20">
+            <!-- IDEAS SUBMISSION FORM -->
+            <form class="flex flex-col gap-[1.3rem]" id="ideaForm" novalidate="">
+                <div class="field" id="f-idea-name">
+                    <label class="block text-[0.85rem] font-semibold text-white mb-[0.4rem]">Your Name / Handle <span class="text-sun-core">*</span></label>
+                    <input class="form-input" id="ideaName" placeholder="e.g. R. Pradeep or Anonymous Explorer" type="text" required>
+                    <div class="field-error">Please enter your name or handle.</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="field" id="f-idea-email">
+                        <label class="block text-[0.85rem] font-semibold text-white mb-[0.4rem]">Email Address <span class="text-sun-core">*</span></label>
+                        <input class="form-input" id="ideaEmail" placeholder="you@example.com" type="email" required>
+                        <div class="field-error">Please enter a valid email so we can update you.</div>
+                    </div>
+                    <div class="field" id="f-idea-role">
+                        <label class="block text-[0.85rem] font-semibold text-white mb-[0.4rem]">Who Are You? <span class="text-sun-core">*</span></label>
+                        <select class="form-select" id="ideaRole" required>
+                            <option value="Homeowner" selected>Homeowner / Resident</option>
+                            <option value="Solar Installer">Solar Electrician / Installer</option>
+                            <option value="Software Engineer">Software / Hardware Engineer</option>
+                            <option value="Business Owner">Commercial Roof Owner</option>
+                            <option value="Enthusiast">Clean Energy Enthusiast</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field" id="f-idea-category">
+                    <label class="block text-[0.85rem] font-semibold text-white mb-[0.4rem]">Idea Category <span class="text-sun-core">*</span></label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="ideaCategoryGrid">
+                        <button type="button" class="seg-btn active text-xs py-2" data-cat="App Feature">📱 App Feature</button>
+                        <button type="button" class="seg-btn text-xs py-2" data-cat="Hardware & Mounts">🔩 Hardware & Mounts</button>
+                        <button type="button" class="seg-btn text-xs py-2" data-cat="Subsidy Automation">⚡ Subsidy Workflow</button>
+                        <button type="button" class="seg-btn text-xs py-2" data-cat="Community Solar">🏘️ Community Solar</button>
+                        <button type="button" class="seg-btn text-xs py-2" data-cat="Cost Reduction">💰 Cost Optimization</button>
+                        <button type="button" class="seg-btn text-xs py-2" data-cat="Other">✨ Other Innovation</button>
+                    </div>
+                </div>
+
+                <div class="field" id="f-idea-title">
+                    <label class="block text-[0.85rem] font-semibold text-white mb-[0.4rem]">Idea Headline <span class="text-sun-core">*</span></label>
+                    <input class="form-input" id="ideaTitle" placeholder="e.g. WhatsApp Bot for daily micro-inverter export monitoring" type="text" required>
+                    <div class="field-error">Please provide a short descriptive title.</div>
+                </div>
+
+                <div class="field" id="f-idea-desc">
+                    <div class="flex justify-between items-center mb-[0.4rem]">
+                        <label class="block text-[0.85rem] font-semibold text-white">How would this solve a problem? <span class="text-sun-core">*</span></label>
+                        <span class="text-[0.72rem] text-text-muted" id="charCount">0 / 600</span>
+                    </div>
+                    <textarea class="form-input min-h-[120px] resize-y" id="ideaDesc" maxlength="600" placeholder="Explain your concept, who it benefits, or how it could work in coastal AP..." required></textarea>
+                    <div class="field-error">Please write a brief description (at least 15 characters).</div>
+                </div>
+
+                <div class="mt-4">
+                    <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-button text-[1.05rem] w-full py-[1rem] rounded-md glow-shadow hover:-translate-y-1 duration-150 transition-transform flex justify-center items-center gap-2 cursor-pointer font-bold" id="submitIdeaBtn" type="submit">
+                        Submit Idea to Engineering Backlog →
+                    </button>
+                </div>
+            </form>
+
+            <!-- SUCCESS CONFIRMATION FOR IDEAS -->
+            <div class="hidden text-center py-6" id="ideaSuccessCard">
+                <div class="w-[72px] h-[72px] rounded-full bg-cyber-lime/10 border border-cyber-lime/30 flex items-center justify-center text-[2rem] text-cyber-lime mx-auto mb-[1.5rem]">💡</div>
+                <h3 class="font-headline-sm text-[1.4rem] text-white mb-2">Thank You for Innovating With Us!</h3>
+                <p class="text-text-muted text-[0.92rem] max-w-[500px] mx-auto mb-[1.8rem]">
+                    Your idea has been indexed into our product development cycle. If accepted, our engineering team will credit your contribution.
+                </p>
+
+                <div class="flex items-center justify-center gap-3 mb-[1.8rem] flex-wrap">
+                    <div class="font-data-mono text-[1.05rem] text-sun-core bg-sun-core/10 border border-sun-core/25 py-2.5 px-6 rounded-md" id="ideaRefId">IDEA-TGS-XXXX</div>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button class="btn-ghost text-xs" onclick="resetIdeaForm()">Submit Another Idea</button>
+                    <button class="bg-gradient-to-r from-sun-core to-sun-deep text-on-primary font-button text-xs font-bold py-2.5 px-5 rounded-md" onclick="goTo('home')">Back to Home</button>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -814,7 +945,7 @@
                     <div class="field-error">Emails do not match.</div>
                 </div>
 
-                <!-- Structured Location Hierarchy Block (Triggers auto_assign_territory_dispatch) -->
+                <!-- Structured Location Hierarchy Block -->
                 <div class="border border-white/10 p-4 rounded-xl bg-black/20 flex flex-col gap-3">
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-[0.85rem] font-semibold text-white">Rooftop Location Hierarchy <span class="text-sun-core">*</span></label>
@@ -990,6 +1121,7 @@
         <button class="bg-transparent border-none text-text-muted hover:text-sun-core cursor-pointer transition-colors" onclick="goTo('home')">Home</button>
         <button class="bg-transparent border-none text-text-muted hover:text-sun-core cursor-pointer transition-colors" onclick="goTo('how')">How It Works</button>
         <button class="bg-transparent border-none text-text-muted hover:text-sun-core cursor-pointer transition-colors" onclick="goTo('faq')">FAQ</button>
+        <button class="bg-transparent border-none text-text-muted hover:text-sun-core cursor-pointer transition-colors" onclick="goTo('ideas')">Ideas Sandbox</button>
         <button class="bg-transparent border-none text-text-muted hover:text-sun-core cursor-pointer transition-colors" onclick="goTo('contact')">Express Interest</button>
     </div>
     © <span id="year">2026</span> Tengo Solar EPC · Coastal Andhra Pradesh Operations (Guntur, Vijayawada, Amaravati).
@@ -1000,7 +1132,13 @@
 <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    /* ── LOCATION HIERARCHY DATA (ANDHRA PRADESH & TELANGANA) ── */
+    /* ── MOBILE NAV DRAWER TOGGLE ── */
+    function toggleMobileNav() {
+        const drawer = document.getElementById('mobileNav');
+        drawer.classList.toggle('hidden');
+    }
+
+    /* ── LOCATION HIERARCHY DATA (AP & TELANGANA) ── */
     const LOCATION_DATA = {
         "Andhra Pradesh": {
             "Guntur": ["Amaravati", "Guntur City", "Mangalagiri", "Tenali", "Tadikonda", "Thullur", "Medikonduru", "Pedakakani", "Other"],
@@ -1153,7 +1291,20 @@
         if (targetView) {
             targetView.classList.add('active');
         }
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.view === name));
+
+        // Update nav links indicator
+        document.querySelectorAll('.nav-link').forEach(l => {
+            const matches = l.dataset.view === name;
+            l.classList.toggle('active', matches);
+            if (matches) {
+                l.classList.add('border-sun-core');
+                l.classList.remove('border-transparent');
+            } else {
+                l.classList.remove('border-sun-core');
+                l.classList.add('border-transparent');
+            }
+        });
+
         history.replaceState(null, '', '#' + name);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setTimeout(handleReveals, 50);
@@ -1161,16 +1312,16 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         const initial = location.hash.replace('#', '');
-        if (['home','how','faq','contact'].includes(initial)) {
+        if (['home','how','faq','ideas','contact'].includes(initial)) {
             goTo(initial);
         } else {
             goTo('home');
         }
     });
 
-    /* ── SUPABASE BACKEND CONFIGURATION ── */
+    /* ── SUPABASE CONFIGURATION ── */
     const SUPABASE_URL = 'https://lkvhomycyufmzwtyjvbz.supabase.co';       // e.g. 'https://xxxx.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';  // your public anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrdmhvbXljeXVmbXp3dHlqdmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMzIxMDIsImV4cCI6MjEwMjgwODEwMn0.494oprs6n3dcHVFQLeYluLIsjsGQg5RPD58H3DZGorY';  // public anon key
     let sb = null;
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
         sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1251,7 +1402,7 @@
         }
     }
 
-    /* ── FORM VALIDATION ── */
+    /* ── FORM VALIDATION (EOI) ── */
     function validate() {
         let firstInvalidId = null;
         let failureReason = '';
@@ -1415,7 +1566,6 @@
     let lastSubmittedPayload = null;
     let lastSubmittedRef = null;
 
-    /* ── DATABASE INGESTION & AUTO-DISPATCH TRIGGER ── */
     async function confirmSubmission() {
         const btn = document.getElementById('confirmSubmitBtn');
         btn.disabled = true;
@@ -1455,7 +1605,6 @@
         document.getElementById('refId').textContent = ref;
         document.getElementById('successCard').classList.remove('hidden');
 
-        // Prepare Automated WhatsApp Link with location and Ref ID
         const waText = encodeURIComponent(
             `Namaskaram Tengo Solar! I have submitted an expression of interest for rooftop solar.\n\n` +
             `• Reference ID: ${ref}\n` +
@@ -1465,7 +1614,6 @@
             `• System: ${SYSTEM_SIZE_LABELS[payload.system_size || '']}\n\n` +
             `Please confirm when an engineer can visit for my technical terrace survey.`
         );
-        // Replace 919848012345 with your official company WhatsApp business number
         document.getElementById('waConfirmLink').href = `https://wa.me/919848012345?text=${waText}`;
     }
 
@@ -1582,6 +1730,90 @@
         lastSubmittedPayload = null;
         lastSubmittedRef = null;
         updateProgress();
+    }
+
+    /* ── NEW IDEAS HUB LOGIC ── */
+    let selectedCategory = 'App Feature';
+    document.querySelectorAll('#ideaCategoryGrid .seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#ideaCategoryGrid .seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedCategory = btn.dataset.cat;
+        });
+    });
+
+    const ideaDescInput = document.getElementById('ideaDesc');
+    const charCount = document.getElementById('charCount');
+    ideaDescInput.addEventListener('input', () => {
+        charCount.textContent = `${ideaDescInput.value.length} / 600`;
+        setInvalid('f-idea-desc', false);
+    });
+
+    ['ideaName', 'ideaEmail', 'ideaTitle'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            setInvalid(`f-${id.replace('idea', 'idea-').toLowerCase()}`, false);
+        });
+    });
+
+    document.getElementById('ideaForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('ideaName').value.trim();
+        const email = document.getElementById('ideaEmail').value.trim().toLowerCase();
+        const role = document.getElementById('ideaRole').value;
+        const title = document.getElementById('ideaTitle').value.trim();
+        const desc = ideaDescInput.value.trim();
+
+        let valid = true;
+        if (!name) { setInvalid('f-idea-name', true); valid = false; }
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailPattern.test(email)) { setInvalid('f-idea-email', true); valid = false; }
+        if (!title) { setInvalid('f-idea-title', true); valid = false; }
+        if (!desc || desc.length < 15) { setInvalid('f-idea-desc', true); valid = false; }
+
+        if (!valid) {
+            showToast('⚠️ Please check required fields.');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitIdeaBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting Concept…';
+
+        const ideaRef = 'IDEA-' + Math.floor(100000 + Math.random() * 900000);
+        const payload = {
+            name, email, role, category: selectedCategory, title, description: desc, reference_id: ideaRef
+        };
+
+        if (sb) {
+            const { error } = await sb.from('user_ideas').insert([payload]);
+            if (error) {
+                console.error('Supabase Idea Ingestion Error:', error);
+                showToast('❌ Submission failed: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Idea →';
+                return;
+            }
+        } else {
+            showToast('💡 Running in preview mode (Idea stored locally)');
+        }
+
+        setTimeout(() => {
+            document.getElementById('ideaForm').classList.add('hidden');
+            document.getElementById('ideaRefId').textContent = ideaRef;
+            document.getElementById('ideaSuccessCard').classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Idea to Engineering Backlog →';
+        }, 600);
+    });
+
+    function resetIdeaForm() {
+        document.getElementById('ideaForm').reset();
+        document.getElementById('ideaForm').classList.remove('hidden');
+        document.getElementById('ideaSuccessCard').classList.add('hidden');
+        charCount.textContent = '0 / 600';
+        document.querySelectorAll('#ideaCategoryGrid .seg-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#ideaCategoryGrid .seg-btn').classList.add('active');
+        selectedCategory = 'App Feature';
     }
 </script>
 </body>
