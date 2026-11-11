@@ -1,5 +1,5 @@
 (function () {
-  var h = React.createElement, useState = React.useState, useEffect = React.useEffect;
+  var h = React.createElement, useState = React.useState, useEffect = React.useEffect, useRef = React.useRef;
 
   // ===== EDIT HERE. Everything below is an UNVERIFIED placeholder until sourced and dated. =====
   var CONFIG = {
@@ -10,6 +10,8 @@
       { kw: 10, from: null, equipment: "To be confirmed" }
     ],
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
+    // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
+    form: { open: false, functionUrl: "", turnstileSiteKey: "" },
     assumptions: { tariffSlabs: null, sunHours: null, costPerKw: null, subsidy: null }
   };
   // Telugu strings are drafts: TODO_REVIEW by a native Telugu speaker before publishing.
@@ -28,6 +30,52 @@
   function Sec(p) { return h("section", { className: p.alt ? "alt" : "", id: p.id }, h("div", { className: "wrap" }, p.children)); }
   function P(text, cls) { return h("p", { className: cls || "" }, text); }
 
+
+  var F = CONFIG.form;
+  function QuoteForm() {
+    var s = useState("idle"), status = s[0], setStatus = s[1];
+    var tk = useState(""), token = tk[0], setToken = tk[1];
+    var box = useRef(null);
+    useEffect(function () {
+      function draw() { if (box.current && window.turnstile && !box.current.hasChildNodes()) window.turnstile.render(box.current, { sitekey: F.turnstileSiteKey, callback: setToken, "expired-callback": function () { setToken(""); } }); }
+      if (window.turnstile) { draw(); return; }
+      var sc = document.createElement("script"); sc.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"; sc.async = true; sc.onload = draw; document.head.appendChild(sc);
+    }, []);
+    function send(e) {
+      e.preventDefault(); if (status === "sending") return;
+      var f = new FormData(e.target), body = {};
+      f.forEach(function (v, k) { body[k] = v; });
+      body.consent = f.get("consent") === "on"; body.turnstileToken = token;
+      setStatus("sending");
+      fetch(F.functionUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (x) { setStatus(x.ok ? "ok" : (x.j && x.j.error) || "error"); if (!x.ok && window.turnstile) { window.turnstile.reset(); setToken(""); } })
+        .catch(function () { setStatus("error"); });
+    }
+    if (status === "ok") return h("div", { className: "card", role: "status" }, h("h3", null, "Thank you"), P("We received your request and will call you soon."));
+    var msg = { invalid_input: "Please check the highlighted details and try again.", captcha_failed: "Spam check failed. Please try again.", rate_limited: "Too many requests. Please try again later.", error: "Something went wrong. Please try again or contact us." }[status];
+    function fld(label, name, extra, el) { return h("label", { className: "fld" }, label, h(el || "input", Object.assign({ name: name }, extra))); }
+    return h("form", { className: "qform", onSubmit: send, noValidate: false },
+      fld("Name", "name", { required: true, maxLength: 120, autoComplete: "name" }),
+      fld("Phone", "phone", { required: true, type: "tel", autoComplete: "tel" }),
+      fld("Email (optional)", "email", { type: "email", maxLength: 254, autoComplete: "email" }),
+      fld("Address or area", "address", { maxLength: 500 }),
+      h("label", { className: "fld" }, "Property type", h("select", { name: "property_type" },
+        h("option", { value: "home" }, "Independent home"), h("option", { value: "apartment" }, "Apartment"),
+        h("option", { value: "small_commercial" }, "Small business"), h("option", { value: "other" }, "Other"))),
+      fld("Average monthly bill (INR)", "monthly_bill_inr", { type: "number", min: 0, max: 10000000, inputMode: "numeric" }),
+      fld("Message (optional)", "message", { maxLength: 2000, rows: 3 }, "textarea"),
+      h("input", { name: "website", tabIndex: -1, autoComplete: "off", "aria-hidden": "true", className: "hp" }),
+      h("label", { className: "chk" }, h("input", { type: "checkbox", name: "consent", required: true }),
+        h("span", null, "I agree to be contacted about my quote and accept the ", h("a", { href: "#/privacy" }, "Privacy Policy"), ".")),
+      h("div", { ref: box }),
+      msg ? h("p", { role: "alert", className: "err" }, msg) : null,
+      h("button", { className: "btn", type: "submit", disabled: !token || status === "sending" }, status === "sending" ? "Sending..." : "Get a free quote"));
+  }
+  function QuoteBlock() {
+    return F.open && F.functionUrl && F.turnstileSiteKey ? h(QuoteForm) : P("The quote form opens soon, once our privacy policy is live.");
+  }
+
   var Pages = {
     home: function () {
       return [
@@ -42,7 +90,7 @@
             return h("div", { className: "card", key: s[0] }, h("h3", null, s[0]), P(s[1])); }))),
         h(Sec, { alt: true, key: "c" }, h("h2", null, "Our credentials"),
           P("We are a new company. We will list our licences and completed installations here as we earn them.")),
-        h(Sec, { id: "quote", key: "d" }, h("h2", null, "Get a free quote"), P("The quote form opens soon, once our privacy policy is live."))
+        h(Sec, { id: "quote", key: "d" }, h("h2", null, "Get a free quote"), h(QuoteBlock))
       ];
     },
     about: function () {
@@ -59,7 +107,8 @@
         P("Placeholder prices. Final package prices will be confirmed before launch.", "note")),
         h(Sec, { alt: true, key: "b" }, h("h2", null, "Calculators"),
           P("Subsidy checker, bill analyzer and payback chart: coming in the next stage."),
-          P("Estimates only. Savings are never guaranteed.", "note"))];
+          P("Estimates only. Savings are never guaranteed.", "note")),
+        h(Sec, { key: "c" }, h("h2", null, "Get a free quote"), h(QuoteBlock))];
     },
     faq: function () {
       var q = [["How much does rooftop solar cost?", "Answer pending: needs verified, dated figures for Andhra Pradesh."],
