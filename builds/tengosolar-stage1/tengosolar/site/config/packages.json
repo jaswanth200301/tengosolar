@@ -1,0 +1,11 @@
+{
+  "status": "UNVERIFIED placeholder - confirm with real dealer quotes before publishing",
+  "source": "Founder statement, 2026-11-11",
+  "currency": "INR",
+  "packages": [
+    {"id": "3kw", "kw": 3, "price_from": 200000, "price_to": null, "equipment": "To be confirmed (panels, inverter, structure)"},
+    {"id": "2kw", "kw": 2, "price_from": null, "price_to": null, "equipment": "To be confirmed"},
+    {"id": "5kw", "kw": 5, "price_from": null, "price_to": null, "equipment": "To be confirmed"},
+    {"id": "10kw", "kw": 10, "price_from": null, "price_to": null, "equipment": "To be confirmed"}
+  ]
+}

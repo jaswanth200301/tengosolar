@@ -1,0 +1,6 @@
+{
+  "default": "AP",
+  "regions": {
+    "AP": {"name": "Andhra Pradesh", "discoms": ["APSPDCL", "APCPDCL", "APEPDCL"], "nodal_agency": "NREDCAP", "status": "UNVERIFIED", "languages": ["en", "te"]}
+  }
+}
