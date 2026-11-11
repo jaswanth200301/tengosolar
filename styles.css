@@ -28,3 +28,7 @@ h2{font-size:clamp(24px,4vw,32px);line-height:1.2;margin:0 0 14px;color:var(--na
 details{border-bottom:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:600;color:var(--navy)}
 footer.site{background:var(--navy);color:#cdd6ee;padding:32px 0;font-size:15px}footer.site a{color:#fff}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.qform{display:grid;gap:14px;max-width:520px}.fld{display:grid;gap:4px;font-weight:600;color:var(--navy)}
+.fld input,.fld select,.fld textarea{font:inherit;padding:11px;border:1px solid #98a2b3;border-radius:8px;width:100%}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:15px}.chk input{margin-top:5px;width:20px;height:20px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px}.err{color:#b42318;font-weight:600;margin:0}.btn:disabled{opacity:.5;cursor:not-allowed}
