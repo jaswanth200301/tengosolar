@@ -1,0 +1,45 @@
+<!-- Paste this ONE block in your site's global header/footer or "custom code" setting.
+     It appears on every page automatically. Remove it (or set ENABLED = false) to go back to normal. -->
+<script>
+(function () {
+  var ENABLED = true;                       // set to false to switch the notice off
+  var EMAIL = "youremail@example.com";      // <-- put your email here
+
+  if (!ENABLED) return;
+
+  // Developer bypass: open any page with ?dev=1 to hide the notice on your browser.
+  // Open any page with ?dev=0 to show it again.
+  try {
+    var q = new URLSearchParams(location.search).get("dev");
+    if (q === "1") localStorage.setItem("devBypass", "1");
+    if (q === "0") localStorage.removeItem("devBypass");
+    if (localStorage.getItem("devBypass") === "1") return;
+  } catch (e) {}
+
+  function show() {
+    var s = document.createElement("style");
+    s.textContent =
+      "#dev-notice-overlay{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial,Helvetica,sans-serif}" +
+      "#dev-notice-box{background:#fff;color:#1a1a1a;width:100%;max-width:640px;min-height:320px;border-radius:16px;padding:48px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;flex-direction:column;justify-content:center}" +
+      "#dev-notice-box h2{margin:0 0 16px;font-size:28px}" +
+      "#dev-notice-box p{margin:0 0 28px;font-size:20px;line-height:1.5}" +
+      "#dev-notice-box a{display:inline-block;align-self:center;background:#1a56db;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:18px}";
+    document.head.appendChild(s);
+
+    var d = document.createElement("div");
+    d.id = "dev-notice-overlay";
+    d.setAttribute("role", "alertdialog");
+    d.setAttribute("aria-modal", "true");
+    d.innerHTML =
+      '<div id="dev-notice-box"><h2>Notice</h2>' +
+      "<p>We are still developing our site. Please don’t send any information here. Contact us through email.</p>" +
+      '<a href="mailto:' + EMAIL + '">Email Us</a></div>';
+    document.body.appendChild(d);
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }
+
+  if (document.body) show();
+  else document.addEventListener("DOMContentLoaded", show);
+})();
+</script>
