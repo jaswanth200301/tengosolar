@@ -11,7 +11,7 @@
     ],
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
-    form: { open: false, functionUrl: "", turnstileSiteKey: "" },
+    form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     assumptions: { tariffSlabs: null, sunHours: null, costPerKw: null, subsidy: null }
   };
   // Telugu strings are drafts: TODO_REVIEW by a native Telugu speaker before publishing.
