@@ -1,7 +1,0 @@
-{
-  "status": "UNVERIFIED - every value needs an official source and date before use",
-  "tariff_slabs": {"value": null, "source": null, "date": null},
-  "sun_hours_per_day": {"value": null, "source": null, "date": null},
-  "cost_per_kw": {"value": null, "source": null, "date": null},
-  "subsidy_amounts": {"value": null, "source": "MNRE / PM Surya Ghar portal", "date": null}
-}
