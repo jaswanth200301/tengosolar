@@ -13,7 +13,7 @@
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
     contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
-    form: { open: false, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
+    form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     // Calculator assumptions. ALL UNVERIFIED planning values: confirm with installer data and official sources before launch.
     calc: { asOf: "2026-11-12", yieldKwhPerKwDay: 4, costPerKw: 66667 /* from the Rs 2 lakh 3 kW price */, degradationPerYear: 0.005, tariffGrowthPerYear: 0, years: 15, sqftPerKw: 100,
       subsidySource: "MNRE PM Surya Ghar guidelines, checked 12 Nov 2026" },
