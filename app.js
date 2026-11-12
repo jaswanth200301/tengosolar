@@ -12,7 +12,7 @@
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
-    contact: { email: "", grievanceEmail: "" },
+    contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
     form: { open: false, functionUrl: "", turnstileSiteKey: "" },
     assumptions: { tariffSlabs: null, sunHours: null, costPerKw: null, subsidy: null }
   };
