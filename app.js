@@ -12,7 +12,7 @@
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
-    contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
+    contact: { email: "", grievanceEmail: "" },
     form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     // Calculator assumptions. ALL UNVERIFIED planning values: confirm with installer data and official sources before launch.
     calc: { asOf: "2026-11-12", yieldKwhPerKwDay: 4, costPerKw: 66667 /* from the Rs 2 lakh 3 kW price */, degradationPerYear: 0.005, tariffGrowthPerYear: 0, years: 15, sqftPerKw: 100,
@@ -188,7 +188,14 @@
       return h(Sec, null, h("h2", null, "Sponsored partners"),
         h("p", null, h("span", { className: "tag" }, "Sponsored"), " Partner listings will appear here. Sponsors never receive customer data."));
     },
-    privacy: function () { return h(Sec, null, h("h2", null, "Privacy Policy"), P("Draft pending lawyer review. The quote form stays closed until this is published.")); },
+    privacy: function () {
+      return h(Sec, null, h("h2", null, "Privacy Notice (interim)"),
+        P("This is an interim notice while our full Privacy Policy is prepared with legal counsel."),
+        h("h3", null, "What we collect"), P("The details you enter in the quote form (name, phone, email if given, address or area, property type, monthly bill and message), and a record of your consent. To limit spam we also keep a scrambled (hashed) form of your IP address for about a day."),
+        h("h3", null, "Why"), P("To contact you about your quote and to run and secure our service. We do not sell your data, and sponsors never receive customer data."),
+        h("h3", null, "Who handles it"), P("Our service providers for hosting and database (Supabase), email delivery (Resend) and spam protection (Cloudflare)."),
+        h("h3", null, "Your choices"), Mail("To see, correct or delete your data, or to withdraw consent, email", CONFIG.contact.grievanceEmail, "To see, correct or delete your data, or to withdraw consent, contact us using the details in the footer."));
+    },
     terms: function () { return h(Sec, null, h("h2", null, "Terms"), P("Draft pending lawyer review.")); }
   };
 
