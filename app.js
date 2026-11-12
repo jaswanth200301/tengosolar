@@ -11,7 +11,9 @@
     ],
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
-    form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
+    // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
+    contact: { email: "", grievanceEmail: "" },
+    form: { open: false, functionUrl: "", turnstileSiteKey: "" },
     assumptions: { tariffSlabs: null, sunHours: null, costPerKw: null, subsidy: null }
   };
   // Telugu strings are drafts: TODO_REVIEW by a native Telugu speaker before publishing.
@@ -19,14 +21,19 @@
     en: { home: "Home", about: "About", services: "Services", faq: "FAQ", sponsored: "Sponsored", cta: "Get a free quote", lang: "తెలుగు",
       privacy: "Privacy Policy", terms: "Terms", contact: "Contact details: coming soon",
       grievance: "Grievance and data-request contact: to be named before launch",
-      scope: "Residential and small commercial installations only." },
+      scope: "Residential and small commercial installations only.", contactLabel: "Contact:", grievanceLabel: "Grievance and data requests:" },
     te: { home: "హోమ్", about: "మా గురించి", services: "సేవలు", faq: "తరచుగా అడిగే ప్రశ్నలు", sponsored: "స్పాన్సర్డ్", cta: "ఉచిత కోట్ పొందండి", lang: "English",
       privacy: "గోప్యతా విధానం", terms: "నిబంధనలు", contact: "సంప్రదింపు వివరాలు త్వరలో",
       grievance: "ఫిర్యాదు మరియు డేటా అభ్యర్థన సంప్రదింపు: ప్రారంభానికి ముందు ప్రకటిస్తాం",
-      scope: "గృహ మరియు చిన్న వాణిజ్య ఇన్‌స్టాలేషన్లు మాత్రమే." }
+      scope: "గృహ మరియు చిన్న వాణిజ్య ఇన్‌స్టాలేషన్లు మాత్రమే.", contactLabel: "సంప్రదింపు:", grievanceLabel: "ఫిర్యాదులు మరియు డేటా అభ్యర్థనలు:" }
   };
   var inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 
+  // Only render a mailto link for a plain, well-formed address.
+  function Mail(label, addr, fallback) {
+    return /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(addr || "")
+      ? h("p", null, label + " ", h("a", { href: "mailto:" + addr }, addr)) : P(fallback);
+  }
   function Sec(p) { return h("section", { className: p.alt ? "alt" : "", id: p.id }, h("div", { className: "wrap" }, p.children)); }
   function P(text, cls) { return h("p", { className: cls || "" }, text); }
 
@@ -35,6 +42,7 @@
   function QuoteForm() {
     var s = useState("idle"), status = s[0], setStatus = s[1];
     var tk = useState(""), token = tk[0], setToken = tk[1];
+    var dt = useState(""), det = dt[0], setDet = dt[1];
     var box = useRef(null);
     useEffect(function () {
       function draw() { if (box.current && window.turnstile && !box.current.hasChildNodes()) window.turnstile.render(box.current, { sitekey: F.turnstileSiteKey, callback: setToken, "expired-callback": function () { setToken(""); } }); }
@@ -49,11 +57,12 @@
       setStatus("sending");
       fetch(F.functionUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
         .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-        .then(function (x) { setStatus(x.ok ? "ok" : (x.j && x.j.error) || "error"); if (!x.ok && window.turnstile) { window.turnstile.reset(); setToken(""); } })
+        .then(function (x) { setDet(x.j && x.j.codes ? x.j.codes.join(", ") : ""); setStatus(x.ok ? "ok" : (x.j && x.j.error) || "error"); if (!x.ok && window.turnstile) { window.turnstile.reset(); setToken(""); } })
         .catch(function () { setStatus("error"); });
     }
     if (status === "ok") return h("div", { className: "card", role: "status" }, h("h3", null, "Thank you"), P("We received your request and will call you soon."));
     var msg = { invalid_input: "Please check the highlighted details and try again.", captcha_failed: "Spam check failed. Please try again.", rate_limited: "Too many requests. Please try again later.", error: "Something went wrong. Please try again or contact us." }[status];
+    if (status === "captcha_failed" && det) msg += " Code: " + det;
     function fld(label, name, extra, el) { return h("label", { className: "fld" }, label, h(el || "input", Object.assign({ name: name }, extra))); }
     return h("form", { className: "qform", onSubmit: send, noValidate: false },
       fld("Name", "name", { required: true, maxLength: 120, autoComplete: "name" }),
@@ -95,7 +104,7 @@
     },
     about: function () {
       return h(Sec, null, h("h2", null, "About Tengo Solar"), P("Company story and team: to be written."),
-        h("h2", null, "Contact"), P("Address, phone, hours and map link: to be added."),
+        h("h2", null, "Contact"), Mail("Email:", CONFIG.contact.email, "Address, phone, hours and map link: to be added."),
         h("h2", null, "Customer reviews"), P("Real reviews will appear here, with each customer's written consent."));
     },
     services: function () {
@@ -147,7 +156,7 @@
         h("button", { className: "lang", type: "button", "aria-label": "Language", onClick: toggle }, t.lang))),
       h("main", { id: "main", tabIndex: -1 }, Pages[page]()),
       h("footer", { className: "site" }, h("div", { className: "wrap" },
-        P(t.contact), P(t.grievance),
+        Mail(t.contactLabel, CONFIG.contact.email, t.contact), Mail(t.grievanceLabel, CONFIG.contact.grievanceEmail, t.grievance),
         h("p", null, h("a", { href: "#/privacy" }, t.privacy), " | ", h("a", { href: "#/terms" }, t.terms)),
         P(t.scope, "note"))));
   }
