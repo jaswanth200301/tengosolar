@@ -12,7 +12,8 @@
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
-    contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
+    contact: { email: "", grievanceEmail: "" },
+    launch: "", // optional. Leave empty for now. Later e.g. "2027" or "March 2027"; it then appears on the site.
     form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     // Calculator assumptions. ALL UNVERIFIED planning values: confirm with installer data and official sources before launch.
     calc: { asOf: "2026-11-12", yieldKwhPerKwDay: 4, costPerKw: 66667 /* from the Rs 2 lakh 3 kW price */, degradationPerYear: 0.005, tariffGrowthPerYear: 0, years: 15, sqftPerKw: 100,
@@ -38,6 +39,7 @@
       ? h("p", null, label + " ", h("a", { href: "mailto:" + addr }, addr)) : P(fallback);
   }
 
+  function launchLine() { return CONFIG.launch ? "We are launching in " + CONFIG.launch + "." : "We are getting ready to launch."; }
   var C = CONFIG.calc;
   function subsidyFor(kw) { if (kw <= 0) return 0; if (kw >= 3) return 78000; if (kw <= 2) return Math.round(30000 * kw); return Math.round(60000 + 18000 * (kw - 2)); }
   function num(v) { var n = parseFloat(v); return isFinite(n) && n > 0 ? n : 0; }
@@ -119,7 +121,7 @@
         .then(function (x) { setDet(x.j && x.j.codes ? x.j.codes.join(", ") : ""); setStatus(x.ok ? "ok" : (x.j && x.j.error) || "error"); if (!x.ok && window.turnstile) { window.turnstile.reset(); setToken(""); } })
         .catch(function () { setStatus("error"); });
     }
-    if (status === "ok") return h("div", { className: "card", role: "status" }, h("h3", null, "Thank you"), P("We received your request and will call you soon."));
+    if (status === "ok") return h("div", { className: "card", role: "status" }, h("h3", null, "Thank you"), P("We have noted your interest and will contact you when we begin operations" + (CONFIG.launch ? " (expected " + CONFIG.launch + ")" : "") + "."));
     var msg = { invalid_input: "Please check the highlighted details and try again.", captcha_failed: "Spam check failed. Please try again.", rate_limited: "Too many requests. Please try again later.", error: "Something went wrong. Please try again or contact us." }[status];
     if (status === "captcha_failed" && det) msg += " Code: " + det;
     function fld(label, name, extra, el) { return h("label", { className: "fld" }, label, h(el || "input", Object.assign({ name: name }, extra))); }
@@ -135,13 +137,13 @@
       fld("Message (optional)", "message", { maxLength: 2000, rows: 3 }, "textarea"),
       h("input", { name: "website", tabIndex: -1, autoComplete: "off", "aria-hidden": "true", className: "hp" }),
       h("label", { className: "chk" }, h("input", { type: "checkbox", name: "consent", required: true }),
-        h("span", null, "I agree to be contacted about my quote and accept the ", h("a", { href: "#/privacy" }, "Privacy Policy"), ".")),
+        h("span", null, "I agree to be contacted by Tengo Solar about my interest and when it begins operations, and I accept the ", h("a", { href: "#/privacy" }, "Privacy Notice"), ".")),
       h("div", { ref: box }),
       msg ? h("p", { role: "alert", className: "err" }, msg) : null,
-      h("button", { className: "btn", type: "submit", disabled: !token || status === "sending" }, status === "sending" ? "Sending..." : "Get a free quote"));
+      h("button", { className: "btn", type: "submit", disabled: !token || status === "sending" }, status === "sending" ? "Sending..." : "Register interest"));
   }
   function QuoteBlock() {
-    return F.open && F.functionUrl && F.turnstileSiteKey ? h(QuoteForm) : P("The quote form opens soon, once our privacy policy is live.");
+    return F.open && F.functionUrl && F.turnstileSiteKey ? h("div", null, P("We are not taking installation bookings yet." + (CONFIG.launch ? " Expected start: " + CONFIG.launch + ". Dates may change." : " We will contact you when we open."), "note"), h(QuoteForm)) : P("The quote form opens soon, once our privacy policy is live.");
   }
 
   var Pages = {
@@ -149,8 +151,8 @@
       return [
         h("div", { className: "hero", key: "a" }, h("div", { className: "wrap" },
           h("h1", null, "Cut your power bill with rooftop solar."),
-          P("Homes and small businesses in " + CONFIG.region.name + ". We survey your roof, design the system and install it."),
-          h("button", { className: "btn", onClick: function () { document.getElementById("quote").scrollIntoView(); } }, "Get a free quote"))),
+          P("Homes and small businesses in " + CONFIG.region.name + ". " + launchLine() + " Register your interest and we will contact you as soon as we begin installations."),
+          h("button", { className: "btn", onClick: function () { document.getElementById("quote").scrollIntoView(); } }, "Register your interest"))),
         h(Sec, { key: "b" }, h("h2", null, "How it works"), h("div", { className: "grid" },
           [["1. Tell us your bill", "Share your monthly bill and roof details."],
            ["2. We survey and quote", "We check your roof and send a clear quote."],
@@ -158,7 +160,7 @@
             return h("div", { className: "card", key: s[0] }, h("h3", null, s[0]), P(s[1])); }))),
         h(Sec, { alt: true, key: "c" }, h("h2", null, "Our credentials"),
           P("We are a new company. We will list our licences and completed installations here as we earn them.")),
-        h(Sec, { id: "quote", key: "d" }, h("h2", null, "Get a free quote"), h(QuoteBlock))
+        h(Sec, { id: "quote", key: "d" }, h("h2", null, "Register your interest"), h(QuoteBlock))
       ];
     },
     about: function () {
@@ -175,7 +177,7 @@
         P("Placeholder prices. Final package prices will be confirmed before launch.", "note")),
         h(Sec, { alt: true, key: "b" }, h("h2", null, "Calculators"), h(BillCalc), h(SubsidyCheck),
           P("Estimates only, not a quote. Savings are never guaranteed. Assumptions: " + C.yieldKwhPerKwDay + " units per kW per day, " + inr.format(C.costPerKw) + " per kW indicative cost, " + (C.degradationPerYear * 100) + "% yearly panel decline, no tariff rise. Last reviewed " + C.asOf + ".", "note")),
-        h(Sec, { key: "c" }, h("h2", null, "Get a free quote"), h(QuoteBlock))];
+        h(Sec, { key: "c" }, h("h2", null, "Register your interest"), h(QuoteBlock))];
     },
     faq: function () {
       var q = [["How much does rooftop solar cost?", "Answer pending: needs verified, dated figures for Andhra Pradesh."],
@@ -191,8 +193,10 @@
     privacy: function () {
       return h(Sec, null, h("h2", null, "Privacy Notice (interim)"),
         P("This is an interim notice while our full Privacy Policy is prepared with legal counsel."),
+        h("h3", null, "Who we are"), P("Tengo Solar is a rooftop solar business being set up in Andhra Pradesh. It is not yet incorporated, and we will update this notice with the company's details once it is."),
         h("h3", null, "What we collect"), P("The details you enter in the quote form (name, phone, email if given, address or area, property type, monthly bill and message), and a record of your consent. To limit spam we also keep a scrambled (hashed) form of your IP address for about a day."),
-        h("h3", null, "Why"), P("To contact you about your quote and to run and secure our service. We do not sell your data, and sponsors never receive customer data."),
+        h("h3", null, "Why"), P("To record your interest, to contact you when we begin operations" + (CONFIG.launch ? " (expected " + CONFIG.launch + ")" : "") + ", and to run and secure our service. We do not sell your data, and sponsors never receive customer data."),
+        h("h3", null, "How long we keep it"), P("We keep your details so we can contact you when we begin operations, and no longer than needed. You can ask us to delete them at any time."),
         h("h3", null, "Who handles it"), P("Our service providers for hosting and database (Supabase), email delivery (Resend) and spam protection (Cloudflare)."),
         h("h3", null, "Your choices"), Mail("To see, correct or delete your data, or to withdraw consent, email", CONFIG.contact.grievanceEmail, "To see, correct or delete your data, or to withdraw consent, contact us using the details in the footer."));
     },
