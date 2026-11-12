@@ -12,7 +12,7 @@
     region: { name: "Andhra Pradesh", discoms: ["APSPDCL", "APCPDCL", "APEPDCL"], nodal: "NREDCAP" },
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
-    contact: { email: "", grievanceEmail: "" },
+    contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
     launch: "", // optional. Leave empty for now. Later e.g. "2027" or "March 2027"; it then appears on the site.
     form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     // Calculator assumptions. ALL UNVERIFIED planning values: confirm with installer data and official sources before launch.
