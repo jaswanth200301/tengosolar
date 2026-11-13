@@ -226,4 +226,94 @@
         h("div", { className: "hero", key: "a" }, h("div", { className: "wrap" },
           h("h1", null, "Cut your power bill with rooftop solar."),
           P("Homes and small businesses in " + CONFIG.region.name + ". " + launchLine() + " Register your interest and we will contact you as soon as we begin installations."),
-          h(
+          h("button", { className: "btn", onClick: function () { document.getElementById("quote").scrollIntoView(); } }, "Register your interest"))),
+        h(Sec, { key: "b" }, h("h2", null, "How it works"), h("div", { className: "grid" },
+          [["1. Tell us your bill", "Share your monthly bill and roof details."],
+           ["2. We survey and quote", "We check your roof and send a clear quote."],
+           ["3. We install", "We install, then guide you through net metering."]].map(function (s) {
+            return h("div", { className: "card", key: s[0] }, h("h3", null, s[0]), P(s[1])); }))),
+        h(Sec, { alt: true, key: "c" }, h("h2", null, "Our credentials"),
+          P("We are a new company. We will list our licences and completed installations here as we earn them.")),
+        h(Sec, { id: "quote", key: "d" }, h("h2", null, "Register your interest"), h(QuoteBlock))
+      ];
+    },
+    about: function () {
+      return h(Sec, null, h("h2", null, "About Tengo Solar"), P("Company story and team: to be written."),
+        h("h2", null, "Contact"), Mail("Email:", CONFIG.contact.email, "Address, phone, hours and map link: to be added."),
+        h("h2", null, "Customer reviews"), P("Real reviews will appear here, with each customer's written consent."));
+    },
+    services: function () {
+      return [h(Sec, { key: "a" }, h("h2", null, "Solar packages"),
+        P("Residential and small commercial systems. Battery storage, EV chargers and maintenance to follow."),
+        h("div", { className: "grid" }, CONFIG.packages.map(function (k) {
+          return h("div", { className: "card", key: k.kw }, h("h3", null, k.kw + " kW"),
+            h("div", { className: "price" }, k.from ? "From " + inr.format(k.from) : "Price to be confirmed"), P(k.equipment, "note")); })),
+        P("Placeholder prices. Final package prices will be confirmed before launch.", "note")),
+        h(Sec, { alt: true, key: "b" }, h("h2", null, "Calculators"), h(BillCalc), h(SubsidyCheck),
+          P("Estimates only, not a quote. Savings are never guaranteed. Assumptions: " + C.yieldKwhPerKwDay + " units per kW per day, " + inr.format(C.costPerKw) + " per kW indicative cost, " + (C.degradationPerYear * 100) + "% yearly panel decline, no tariff rise. Last reviewed " + C.asOf + ".", "note")),
+        h(Sec, { key: "c" }, h("h2", null, "Register your interest"), h(QuoteBlock))];
+    },
+    faq: function () {
+      var q = [["How much does rooftop solar cost?", "Answer pending: needs verified, dated figures for Andhra Pradesh."],
+               ["What subsidy is available?", "Answer pending: to be taken from official MNRE and PM Surya Ghar sources."],
+               ["How does net metering work?", "Answer pending: to be confirmed with the local DISCOM."]];
+      return h(Sec, null, h("h2", null, "Frequently asked questions"),
+        q.map(function (x) { return h("details", { key: x[0] }, h("summary", null, x[0]), P(x[1])); }));
+    },
+    ideas: function () {
+      return h(Sec, null, h("h2", null, "Share an idea"),
+        P("Have an idea to improve what we do, or a new way to solve a problem in any field? Tell us. Ideas are reviewed privately and are not shown on this site. Please do not include confidential or personal information about other people."),
+        F.open && F.ideasUrl && F.turnstileSiteKey ? h(IdeaForm) : P("The idea form opens soon."));
+    },
+    sponsored: function () {
+      var list = CONFIG.sponsored.filter(function (x) { return /^https:\/\/[^\s"'<>]+$/.test(x.url || ""); });
+      return h(Sec, null, h("h2", null, "Communities we sponsor"),
+        P("We back communities we believe in. Sponsorship does not mean these groups endorse Tengo Solar, and they never receive customer data."),
+        list.length ? h("div", { className: "grid" }, list.map(function (x) {
+          return h("div", { className: "card", key: x.name }, h("span", { className: "tag" }, "Sponsored by Tengo Solar"),
+            h("h3", { style: { marginTop: "10px" } }, x.name), P(x.description),
+            h("a", { href: x.url, target: "_blank", rel: "noopener sponsored" }, "Visit " + x.name));
+        })) : P("Our sponsorships will be listed here."),
+        P("Tengo Solar is not affiliated with Supercell. Clash of Clans is a trademark of Supercell.", "note"));
+    },
+    privacy: function () {
+      return h(Sec, null, h("h2", null, "Privacy Notice (interim)"),
+        P("This is an interim notice while our full Privacy Policy is prepared with legal counsel."),
+        h("h3", null, "Who we are"), P("Tengo Solar is a rooftop solar business being set up in Andhra Pradesh. It is not yet incorporated, and we will update this notice with the company's details once it is."),
+        h("h3", null, "What we collect"), P("The details you enter in the quote form (name, phone, email if given, address or area, property type, monthly bill and message), and a record of your consent. To limit spam we also keep a scrambled (hashed) form of your IP address for about a day."),
+        h("h3", null, "Why"), P("To record your interest, to contact you when we begin operations" + (CONFIG.launch ? " (expected " + CONFIG.launch + ")" : "") + ", and to run and secure our service. We do not sell your data, and sponsors never receive customer data."),
+        h("h3", null, "How long we keep it"), P("We keep your details so we can contact you when we begin operations, and no longer than needed. You can ask us to delete them at any time."),
+        h("h3", null, "Who handles it"), P("Our service providers for hosting and database (Supabase), email delivery (Resend) and spam protection (Cloudflare)."),
+        h("h3", null, "Your choices"), Mail("To see, correct or delete your data, or to withdraw consent, email", CONFIG.contact.grievanceEmail, "To see, correct or delete your data, or to withdraw consent, contact us using the details in the footer."));
+    },
+    terms: function () { return h(Sec, null, h("h2", null, "Terms"), P("Draft pending lawyer review.")); }
+  };
+
+  function route() { var r = (location.hash || "").replace(/^#\/?/, ""); return Pages[r] ? r : "home"; }
+
+  function App() {
+    var s1 = useState(route()), page = s1[0], setPage = s1[1];
+    var s2 = useState(function () { try { return localStorage.getItem("lang") === "te" ? "te" : "en"; } catch (e) { return "en"; } }), lang = s2[0], setLang = s2[1];
+    useEffect(function () {
+      function on() { setPage(route()); window.scrollTo(0, 0); }
+      window.addEventListener("hashchange", on); return function () { window.removeEventListener("hashchange", on); };
+    }, []);
+    useEffect(function () { document.documentElement.lang = lang; }, [lang]);
+    var t = T[lang];
+    function toggle() { var n = lang === "en" ? "te" : "en"; try { localStorage.setItem("lang", n); } catch (e) {} setLang(n); }
+    var nav = ["home", "about", "services", "faq", "ideas", "sponsored"].map(function (k) {
+      return h("a", { key: k, href: "#/" + k, "aria-current": k === page ? "page" : undefined }, t[k]); });
+    return h("div", null,
+      h("a", { className: "skip", href: "#main", onClick: function (e) { e.preventDefault(); document.getElementById("main").focus(); } }, "Skip to content"),
+      h("header", { className: "site" }, h("div", { className: "wrap" },
+        h("a", { className: "brand", href: "#/home" }, h("img", { src: "logo.png", alt: "", width: 40, height: 40 }), "Tengo Solar"),
+        h("nav", { className: "main", "aria-label": "Main" }, nav),
+        h("button", { className: "lang", type: "button", "aria-label": "Language", onClick: toggle }, t.lang))),
+      h("main", { id: "main", tabIndex: -1 }, Pages[page]()),
+      h("footer", { className: "site" }, h("div", { className: "wrap" },
+        Mail(t.contactLabel, CONFIG.contact.email, t.contact), Mail(t.grievanceLabel, CONFIG.contact.grievanceEmail, t.grievance),
+        h("p", null, h("a", { href: "#/privacy" }, t.privacy), " | ", h("a", { href: "#/terms" }, t.terms)),
+        P(t.scope, "note"))));
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(h(App));
+})();
