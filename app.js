@@ -13,6 +13,12 @@
     // Quote form stays closed until the privacy policy is live. Fill the two values, then set open: true.
     // Public contact addresses (safe to publish). Fill in once Email Routing works, e.g. hello@yourdomain.in
     contact: { email: "contact@tengosolar.com", grievanceEmail: "contact@tengosolar.com" },
+    // Communities we sponsor. Add an entry per group. Only add groups that have agreed in writing. url must start with https://
+    sponsored: [
+      { name: "Clashers Union", description: "An online community for Clash of Clans players.", url: "https://clashersunion.tengosolar.com" }
+    ],
+    // Public read-only access to the sponsors list. The anon/publishable key is designed to be public; NEVER put the service_role key here.
+    supabase: { url: "https://opojsqomgshxhtumagss.supabase.co", anonKey: "" },
     launch: "", // optional. Leave empty for now. Later e.g. "2027" or "March 2027"; it then appears on the site.
     form: { open: true, functionUrl: "https://opojsqomgshxhtumagss.supabase.co/functions/v1/quick-function", turnstileSiteKey: "0x4AAAAAAF8aTUc9Fv2iti_c" },
     // Calculator assumptions. ALL UNVERIFIED planning values: confirm with installer data and official sources before launch.
@@ -94,6 +100,36 @@
       h("p", { role: "status" }, h("b", null, out)),
       P("Central subsidy for homes: Rs 30,000 for 1 kW, Rs 60,000 for 2 kW, Rs 78,000 for 3 kW or more. Source: " + C.subsidySource + ". It is paid after installation and inspection.", "note"),
       P("The subsidy needs an MNRE-empanelled installer. Tengo Solar is not empanelled yet, so we cannot process subsidy applications at this time.", "note"));
+  }
+
+  var TIERS = ["gold", "silver", "bronze"];
+  function sponsorHref(u, name) {
+    try {
+      var x = new URL(u); if (x.protocol !== "https:") return null;
+      x.searchParams.set("utm_source", "tengosolar"); x.searchParams.set("utm_medium", "sponsored");
+      x.searchParams.set("utm_campaign", String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+      return x.toString();
+    } catch (e) { return null; }
+  }
+  function Sponsors() {
+    var a = useState(null), list = a[0], setList = a[1], b = useState(false), err = b[0], setErr = b[1];
+    useEffect(function () {
+      var S = CONFIG.supabase; if (!S.url || !S.anonKey) { setList([]); return; }
+      fetch(S.url + "/rest/v1/sponsors?select=id,name,logo_url,tagline,link_url,tier", { headers: { apikey: S.anonKey } })
+        .then(function (r) { if (!r.ok) throw new Error("x"); return r.json(); })
+        .then(function (d) { d.sort(function (p, q) { var i = TIERS.indexOf(p.tier), j = TIERS.indexOf(q.tier); return (i < 0 ? 9 : i) - (j < 0 ? 9 : j) || String(p.name).localeCompare(q.name); }); setList(d); })
+        .catch(function () { setErr(true); setList([]); });
+    }, []);
+    if (list === null) return P("Loading...", "note");
+    if (err) return P("Sponsored partners are unavailable right now.", "note");
+    if (!list.length) return P("No sponsored partners at the moment.", "note");
+    return h("div", { className: "grid" }, list.map(function (x) {
+      var href = sponsorHref(x.link_url, x.name), logo = /^https:\/\//.test(x.logo_url || "") ? x.logo_url : null;
+      return h("div", { className: "card", key: x.id }, h("span", { className: "tag" }, "Sponsored"),
+        logo ? h("img", { src: logo, alt: x.name + " logo", loading: "lazy", className: "spl" }) : null,
+        h("h3", null, x.name), x.tagline ? P(x.tagline) : null,
+        href ? h("a", { href: href, target: "_blank", rel: "sponsored noopener noreferrer" }, "Visit website") : null);
+    }));
   }
   function Sec(p) { return h("section", { className: p.alt ? "alt" : "", id: p.id }, h("div", { className: "wrap" }, p.children)); }
   function P(text, cls) { return h("p", { className: cls || "" }, text); }
@@ -187,8 +223,15 @@
         q.map(function (x) { return h("details", { key: x[0] }, h("summary", null, x[0]), P(x[1])); }));
     },
     sponsored: function () {
-      return h(Sec, null, h("h2", null, "Sponsored partners"),
-        h("p", null, h("span", { className: "tag" }, "Sponsored"), " Partner listings will appear here. Sponsors never receive customer data."));
+      var list = CONFIG.sponsored.filter(function (x) { return /^https:\/\/[^\s"'<>]+$/.test(x.url || ""); });
+      return h(Sec, null, h("h2", null, "Communities we sponsor"),
+        P("We back communities we believe in. Sponsorship does not mean these groups endorse Tengo Solar, and they never receive customer data."),
+        list.length ? h("div", { className: "grid" }, list.map(function (x) {
+          return h("div", { className: "card", key: x.name }, h("span", { className: "tag" }, "Sponsored by Tengo Solar"),
+            h("h3", { style: { marginTop: "10px" } }, x.name), P(x.description),
+            h("a", { href: x.url, target: "_blank", rel: "noopener sponsored" }, "Visit " + x.name));
+        })) : P("Our sponsorships will be listed here."),
+        P("Tengo Solar is not affiliated with Supercell. Clash of Clans is a trademark of Supercell.", "note"));
     },
     privacy: function () {
       return h(Sec, null, h("h2", null, "Privacy Notice (interim)"),
